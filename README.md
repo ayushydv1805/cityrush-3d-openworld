@@ -2,8 +2,29 @@
 
 **Your City. Your Ride. Your Run.**
 
-Phase 1 foundation: React + Vite, Three.js/React Three Fiber, full-screen game menu, initial 3D vehicle prototype, Node.js/Express/Socket.IO backend, health endpoint, and deployment-ready structure.
+## Phase 2 — Player + Camera
 
-Planned cities: Chandigarh, Rewari, Gurugram, Delhi.
+Phase 2 turns the foundation into the first playable third-person experience.
 
-Roadmap: Foundation → Player/Camera → City → Vehicles → Traffic/NPCs → Missions → Economy → Garage → Reputation → Police/Heat → Day/Night → Weather → Hidden Locations → Collectibles → Story → Social → Advanced Missions → Dynamic Events → Advanced Driving → Multiplayer → Profiles/Leaderboards → Audio → Graphics/UI polish → Save → Optimization → Testing → Production.
+### Included
+- Procedural 3D player character
+- WASD movement relative to the camera
+- Shift sprint
+- Space jump with gravity
+- Mouse-controlled third-person camera
+- Smooth camera follow
+- Player collision against buildings and world boundaries
+- Walk/sprint animation
+- Training District with roads, buildings, trees and street lights
+- Gameplay telemetry HUD
+- Pointer-lock control flow
+- Responsive controls/settings panel
+
+### Stack
+React + Vite, Three.js, React Three Fiber, React Three Drei, Node.js, Express and Socket.IO.
+
+### Cities planned
+Chandigarh, Rewari, Gurugram, Delhi.
+
+### Roadmap
+Foundation → **Player/Camera** → City → Vehicles → Traffic/NPCs → Missions → Economy → Garage → Reputation → Police/Heat → Day/Night → Weather → Hidden Locations → Collectibles → Story → Social → Advanced Missions → Dynamic Events → Advanced Driving → Multiplayer → Profiles/Leaderboards → Audio → Graphics/UI polish → Save → Optimization → Testing → Production.
