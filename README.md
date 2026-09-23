@@ -28,3 +28,6 @@ Chandigarh, Rewari, Gurugram, Delhi.
 
 ### Roadmap
 Foundation → **Player/Camera** → City → Vehicles → Traffic/NPCs → Missions → Economy → Garage → Reputation → Police/Heat → Day/Night → Weather → Hidden Locations → Collectibles → Story → Social → Advanced Missions → Dynamic Events → Advanced Driving → Multiplayer → Profiles/Leaderboards → Audio → Graphics/UI polish → Save → Optimization → Testing → Production.
+
+
+Current gameplay patch: reliable W/A/S/D camera-relative movement.
