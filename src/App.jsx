@@ -154,7 +154,7 @@ function World() {
         </mesh>
       ))}
 
-      <gridHelper args={[WORLD_BOUNDS * 2, 56, "#334155", "#182235"] />
+      <gridHelper args={[WORLD_BOUNDS * 2, 56, "#334155", "#182235"]} />
       {OBSTACLES.map((box) => <Building key={box.label} box={box} />)}
       {trees.map(([x, z, scale], index) => <Tree key={index} x={x} z={z} scale={scale} />)}
 
