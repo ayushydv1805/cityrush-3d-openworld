@@ -23,51 +23,37 @@ const OBSTACLES = [
   { x: 0, z: 19, w: 18, d: 2.5, h: 2.2, color: "#17223a", label: "wall-south" },
 ];
 
-const START_POSITION = [0, 0, 15];
+const START_POSITION = [0, 0, 8];
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
-function resolvePlayerPosition(x, z) {
-  let px = clamp(x, -WORLD_BOUNDS + PLAYER.radius, WORLD_BOUNDS - PLAYER.radius);
-  let pz = clamp(z, -WORLD_BOUNDS + PLAYER.radius, WORLD_BOUNDS - PLAYER.radius);
+function canPlayerOccupy(x, z) {
+  const px = clamp(x, -WORLD_BOUNDS + PLAYER.radius, WORLD_BOUNDS - PLAYER.radius);
+  const pz = clamp(z, -WORLD_BOUNDS + PLAYER.radius, WORLD_BOUNDS - PLAYER.radius);
 
-  for (let pass = 0; pass < 3; pass += 1) {
-    for (const box of OBSTACLES) {
-      const minX = box.x - box.w / 2;
-      const maxX = box.x + box.w / 2;
-      const minZ = box.z - box.d / 2;
-      const maxZ = box.z + box.d / 2;
-      const nearestX = clamp(px, minX, maxX);
-      const nearestZ = clamp(pz, minZ, maxZ);
-      const dx = px - nearestX;
-      const dz = pz - nearestZ;
-      const distanceSq = dx * dx + dz * dz;
+  for (const box of OBSTACLES) {
+    const minX = box.x - box.w / 2;
+    const maxX = box.x + box.w / 2;
+    const minZ = box.z - box.d / 2;
+    const maxZ = box.z + box.d / 2;
+    const nearestX = clamp(px, minX, maxX);
+    const nearestZ = clamp(pz, minZ, maxZ);
+    const dx = px - nearestX;
+    const dz = pz - nearestZ;
 
-      if (distanceSq >= PLAYER.radius * PLAYER.radius) continue;
-
-      if (distanceSq > 0.000001) {
-        const distance = Math.sqrt(distanceSq);
-        const push = PLAYER.radius - distance;
-        px += (dx / distance) * push;
-        pz += (dz / distance) * push;
-      } else {
-        const pushLeft = Math.abs(px - minX);
-        const pushRight = Math.abs(maxX - px);
-        const pushTop = Math.abs(pz - minZ);
-        const pushBottom = Math.abs(maxZ - pz);
-        const smallest = Math.min(pushLeft, pushRight, pushTop, pushBottom);
-        if (smallest === pushLeft) px = minX - PLAYER.radius;
-        else if (smallest === pushRight) px = maxX + PLAYER.radius;
-        else if (smallest === pushTop) pz = minZ - PLAYER.radius;
-        else pz = maxZ + PLAYER.radius;
-      }
-
-      px = clamp(px, -WORLD_BOUNDS + PLAYER.radius, WORLD_BOUNDS - PLAYER.radius);
-      pz = clamp(pz, -WORLD_BOUNDS + PLAYER.radius, WORLD_BOUNDS - PLAYER.radius);
+    if (dx * dx + dz * dz < PLAYER.radius * PLAYER.radius) {
+      return false;
     }
   }
 
-  return { x: px, z: pz };
+  return true;
+}
+
+function clampPlayerPosition(x, z) {
+  return {
+    x: clamp(x, -WORLD_BOUNDS + PLAYER.radius, WORLD_BOUNDS - PLAYER.radius),
+    z: clamp(z, -WORLD_BOUNDS + PLAYER.radius, WORLD_BOUNDS - PLAYER.radius),
+  };
 }
 
 function Building({ box }) {
@@ -163,11 +149,11 @@ function World() {
       <StreetLight x={-6} z={3} />
       <StreetLight x={6} z={-3} flip />
 
-      <mesh position={[0, 0.08, 15]} receiveShadow>
+      <mesh position={[0, 0.08, 8]} receiveShadow>
         <cylinderGeometry args={[2.25, 2.25, 0.14, 48]} />
         <meshStandardMaterial color="#182541" metalness={0.25} roughness={0.65} />
       </mesh>
-      <mesh position={[0, 0.15, 15]} receiveShadow>
+      <mesh position={[0, 0.15, 8]} receiveShadow>
         <torusGeometry args={[2.15, 0.05, 10, 48]} />
         <meshStandardMaterial color="#6366f1" emissive="#4f46e5" emissiveIntensity={0.7} metalness={0.55} roughness={0.3} />
       </mesh>
@@ -193,22 +179,23 @@ function Player({ playerRef, yawRef, pitchRef, locked, onUpdate }) {
       const code = (event.code || "").toLowerCase();
       const key = (event.key || "").toLowerCase();
 
-      if (code === "keyw" || key === "w") return "w";
-      if (code === "keya" || key === "a") return "a";
-      if (code === "keys" || key === "s") return "s";
-      if (code === "keyd" || key === "d") return "d";
+      if (code === "keyw" || key === "w" || code === "arrowup") return "w";
+      if (code === "keya" || key === "a" || code === "arrowleft") return "a";
+      if (code === "keys" || key === "s" || code === "arrowdown") return "s";
+      if (code === "keyd" || key === "d" || code === "arrowright") return "d";
       if (code === "shiftleft" || code === "shiftright" || key === "shift") return "shift";
       if (code === "space" || key === " ") return "space";
-      return code || key;
+      return null;
     };
 
     const down = (event) => {
       const key = normalize(event);
       if (!key) return;
-      keysRef.current.add(key);
 
+      keysRef.current.add(key);
       if (key === "space") jumpQueuedRef.current = true;
-      if (["w", "a", "s", "d", "shift", "space", "arrowup", "arrowdown", "arrowleft", "arrowright"].includes(key)) {
+
+      if (["w", "a", "s", "d", "shift", "space"].includes(key)) {
         event.preventDefault();
       }
     };
@@ -218,15 +205,18 @@ function Player({ playerRef, yawRef, pitchRef, locked, onUpdate }) {
       if (key) keysRef.current.delete(key);
     };
 
-    const clear = () => keysRef.current.clear();
+    const clear = () => {
+      keysRef.current.clear();
+      jumpQueuedRef.current = false;
+    };
 
-    window.addEventListener("keydown", down, true);
-    window.addEventListener("keyup", up, true);
+    document.addEventListener("keydown", down, { capture: true, passive: false });
+    document.addEventListener("keyup", up, { capture: true });
     window.addEventListener("blur", clear);
 
     return () => {
-      window.removeEventListener("keydown", down, true);
-      window.removeEventListener("keyup", up, true);
+      document.removeEventListener("keydown", down, true);
+      document.removeEventListener("keyup", up, true);
       window.removeEventListener("blur", clear);
     };
   }, []);
@@ -309,12 +299,27 @@ function Player({ playerRef, yawRef, pitchRef, locked, onUpdate }) {
       groundedRef.current = true;
     }
 
-    const next = resolvePlayerPosition(
-      group.position.x + velocity.x * dt,
-      group.position.z + velocity.z * dt,
-    );
-    group.position.x = next.x;
-    group.position.z = next.z;
+    const current = clampPlayerPosition(group.position.x, group.position.z);
+
+    const proposedX = clampPlayerPosition(
+      current.x + velocity.x * dt,
+      current.z,
+    ).x;
+    if (canPlayerOccupy(proposedX, current.z)) {
+      group.position.x = proposedX;
+    } else {
+      velocity.x = 0;
+    }
+
+    const proposedZ = clampPlayerPosition(
+      group.position.x,
+      current.z + velocity.z * dt,
+    ).z;
+    if (canPlayerOccupy(group.position.x, proposedZ)) {
+      group.position.z = proposedZ;
+    } else {
+      velocity.z = 0;
+    }
 
     const moving = horizontal.lengthSq() > 0.18;
     const speed = horizontal.length();
