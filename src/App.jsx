@@ -189,20 +189,45 @@ function Player({ playerRef, yawRef, pitchRef, locked, onUpdate }) {
   const lastHudUpdateRef = useRef(0);
 
   useEffect(() => {
+    const normalize = (event) => {
+      const code = (event.code || "").toLowerCase();
+      const key = (event.key || "").toLowerCase();
+
+      if (code === "keyw" || key === "w") return "w";
+      if (code === "keya" || key === "a") return "a";
+      if (code === "keys" || key === "s") return "s";
+      if (code === "keyd" || key === "d") return "d";
+      if (code === "shiftleft" || code === "shiftright" || key === "shift") return "shift";
+      if (code === "space" || key === " ") return "space";
+      return code || key;
+    };
+
     const down = (event) => {
-      keysRef.current.add(event.code);
-      if (event.code === "Space") jumpQueuedRef.current = true;
-      if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.code)) {
+      const key = normalize(event);
+      if (!key) return;
+      keysRef.current.add(key);
+
+      if (key === "space") jumpQueuedRef.current = true;
+      if (["w", "a", "s", "d", "shift", "space", "arrowup", "arrowdown", "arrowleft", "arrowright"].includes(key)) {
         event.preventDefault();
       }
     };
-    const up = (event) => keysRef.current.delete(event.code);
 
-    window.addEventListener("keydown", down, { passive: false });
-    window.addEventListener("keyup", up);
+    const up = (event) => {
+      const key = normalize(event);
+      if (key) keysRef.current.delete(key);
+    };
+
+    const clear = () => keysRef.current.clear();
+
+    window.addEventListener("keydown", down, true);
+    window.addEventListener("keyup", up, true);
+    window.addEventListener("blur", clear);
+
     return () => {
-      window.removeEventListener("keydown", down);
-      window.removeEventListener("keyup", up);
+      window.removeEventListener("keydown", down, true);
+      window.removeEventListener("keyup", up, true);
+      window.removeEventListener("blur", clear);
     };
   }, []);
 
@@ -236,21 +261,26 @@ function Player({ playerRef, yawRef, pitchRef, locked, onUpdate }) {
     const group = groupRef.current;
     if (!group) return;
 
-    const inputX = (keys.has("KeyD") ? 1 : 0) - (keys.has("KeyA") ? 1 : 0);
-    const inputZ = (keys.has("KeyS") ? 1 : 0) - (keys.has("KeyW") ? 1 : 0);
-    const input = new THREE.Vector2(inputX, inputZ);
+    const horizontalInput = (keys.has("d") ? 1 : 0) - (keys.has("a") ? 1 : 0);
+    const verticalInput = (keys.has("w") ? 1 : 0) - (keys.has("s") ? 1 : 0);
+    const input = new THREE.Vector2(horizontalInput, verticalInput);
     if (input.lengthSq() > 1) input.normalize();
 
     const yaw = yawRef.current;
-    const forward = new THREE.Vector3(Math.sin(yaw), 0, -Math.cos(yaw));
-    const right = new THREE.Vector3(Math.cos(yaw), 0, Math.sin(yaw));
-    const move = new THREE.Vector3()
-      .addScaledVector(right, input.x)
-      .addScaledVector(forward, -input.y);
+    const sinYaw = Math.sin(yaw);
+    const cosYaw = Math.cos(yaw);
+
+    // Camera-relative movement:
+    // W = forward, S = backward, A = left, D = right.
+    const move = new THREE.Vector3(
+      cosYaw * input.x + sinYaw * input.y,
+      0,
+      sinYaw * input.x - cosYaw * input.y,
+    );
 
     if (move.lengthSq() > 0) move.normalize();
 
-    const sprinting = keys.has("ShiftLeft") || keys.has("ShiftRight");
+    const sprinting = keys.has("shift");
     const targetSpeed = sprinting ? PLAYER.sprintSpeed : PLAYER.walkSpeed;
     const targetX = move.x * targetSpeed;
     const targetZ = move.z * targetSpeed;
