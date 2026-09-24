@@ -46,14 +46,29 @@ function Lamp({ position, rear = false }) {
   );
 }
 
-function Wheel({ refValue, position, steer = false }) {
+function Wheel({ position }) {
   return (
-    <group ref={steer ? refValue : undefined} position={position}>
-      <mesh rotation-z={Math.PI / 2} castShadow>
+    <group position={position}>
+      <mesh ref={(node) => node?.userData} rotation-z={Math.PI / 2} castShadow>
         <cylinderGeometry args={[VEHICLE.wheelRadius, VEHICLE.wheelRadius, 0.28, 24]} />
         <meshStandardMaterial color="#17191d" roughness={0.72} metalness={0.08} />
       </mesh>
-      <mesh position={[steer ? 0 : 0, 0, 0]} rotation-z={Math.PI / 2}>
+      <mesh position={[0, 0, 0]} rotation-z={Math.PI / 2}>
+        <cylinderGeometry args={[0.19, 0.19, 0.3, 20]} />
+        <meshStandardMaterial color="#69717a" roughness={0.48} metalness={0.62} />
+      </mesh>
+    </group>
+  );
+}
+
+function WheelAssembly({ refValue, position }) {
+  return (
+    <group ref={refValue} position={position}>
+      <mesh castShadow rotation-z={Math.PI / 2}>
+        <cylinderGeometry args={[VEHICLE.wheelRadius, VEHICLE.wheelRadius, 0.28, 24]} />
+        <meshStandardMaterial color="#17191d" roughness={0.72} metalness={0.08} />
+      </mesh>
+      <mesh rotation-z={Math.PI / 2}>
         <cylinderGeometry args={[0.19, 0.19, 0.3, 20]} />
         <meshStandardMaterial color="#69717a" roughness={0.48} metalness={0.62} />
       </mesh>
@@ -129,25 +144,15 @@ function VehicleModel({ refs }) {
         </mesh>
       </group>
 
-      <group ref={refs.frontLeft} position={[-0.99, 0.38, -1.25]}>
-        <Wheel position={[0, 0, 0]} />
-      </group>
-      <group ref={refs.frontRight} position={[0.99, 0.38, -1.25]}>
-        <Wheel position={[0, 0, 0]} />
-      </group>
-      <group ref={refs.rearLeft} position={[-0.99, 0.38, 1.25]}>
-        <Wheel position={[0, 0, 0]} />
-      </group>
-      <group ref={refs.rearRight} position={[0.99, 0.38, 1.25]}>
-        <Wheel position={[0, 0, 0]} />
-      </group>
+      <WheelAssembly refValue={refs.frontLeft} position={[-0.99, 0.38, -1.25]} />
+      <WheelAssembly refValue={refs.frontRight} position={[0.99, 0.38, -1.25]} />
+      <WheelAssembly refValue={refs.rearLeft} position={[-0.99, 0.38, 1.25]} />
+      <WheelAssembly refValue={refs.rearRight} position={[0.99, 0.38, 1.25]} />
 
-      <group position={[0, 0.45, 0]}>
-        <mesh position={[0, 0.14, 0]} rotation-x={Math.PI / 2}>
-          <boxGeometry args={[0.72, 0.04, 0.16]} />
-          <meshStandardMaterial color={VEHICLE.accent} roughness={0.4} metalness={0.56} />
-        </mesh>
-      </group>
+      <mesh position={[0, 0.76, -1.94]} castShadow>
+        <boxGeometry args={[0.22, 0.05, 0.18]} />
+        <meshStandardMaterial color="#101419" roughness={0.48} metalness={0.6} />
+      </mesh>
     </group>
   );
 }
@@ -169,6 +174,12 @@ export default function VehicleController({
   const frontRightRef = useRef();
   const rearLeftRef = useRef();
   const rearRightRef = useRef();
+
+  const keysRef = useRef(new Set());
+  const speedRef = useRef(0);
+  const nearbyRef = useRef(false);
+  const eventLockRef = useRef(false);
+
   const refs = {
     body: bodyRef,
     frontLeft: frontLeftRef,
@@ -176,12 +187,6 @@ export default function VehicleController({
     rearLeft: rearLeftRef,
     rearRight: rearRightRef,
   };
-
-  const keysRef = useRef(new Set());
-  const speedRef = useRef(0);
-  const steerRef = useRef(0);
-  const nearbyRef = useRef(false);
-  const eventLockRef = useRef(false);
 
   useEffect(() => {
     vehicleRef.current = groupRef.current;
@@ -191,64 +196,66 @@ export default function VehicleController({
   }, [vehicleRef]);
 
   useEffect(() => {
-    const down = (event) => {
+    const normalize = (event) => {
       const code = (event.code || "").toLowerCase();
       const key = (event.key || "").toLowerCase();
-      const normalized =
-        code === "keyw" || key === "w" ? "w" :
-        code === "keys" || key === "s" ? "s" :
-        code === "keya" || key === "a" ? "a" :
-        code === "keyd" || key === "d" ? "d" :
-        code === "space" || key === " " ? "space" :
-        code === "keye" || key === "e" ? "e" : null;
+      if (code === "keyw" || key === "w") return "w";
+      if (code === "keys" || key === "s") return "s";
+      if (code === "keya" || key === "a") return "a";
+      if (code === "keyd" || key === "d") return "d";
+      if (code === "space" || key === " ") return "space";
+      if (code === "keye" || key === "e") return "e";
+      return null;
+    };
 
-      if (!normalized) return;
+    const down = (event) => {
+      const key = normalize(event);
+      if (!key) return;
 
-      if (normalized === "e") {
+      if (key === "e") {
         if (event.repeat || eventLockRef.current) return;
         eventLockRef.current = true;
+
+        const group = groupRef.current;
+        if (!group) return;
+
         if (driving) {
-          const group = groupRef.current;
-          const yaw = group?.rotation.y ?? yawRef.current;
+          const yaw = group.rotation.y;
           const rightX = Math.cos(yaw);
           const rightZ = Math.sin(yaw);
-          const first = [group.position.x + rightX * 2.35, 0, group.position.z + rightZ * 2.35];
-          const second = [group.position.x - rightX * 2.35, 0, group.position.z - rightZ * 2.35];
+          const rightSpot = [group.position.x + rightX * 2.35, 0, group.position.z + rightZ * 2.35];
+          const leftSpot = [group.position.x - rightX * 2.35, 0, group.position.z - rightZ * 2.35];
           const player = playerRef.current;
+
           if (player) {
-            const firstFree = canVehicleOccupy(first[0], first[2], city);
-            const spot = firstFree ? first : second;
+            const rightFree = canVehicleOccupy(rightSpot[0], rightSpot[2], city);
+            const spot = rightFree ? rightSpot : leftSpot;
             player.position.set(spot[0], spot[1], spot[2]);
           }
+
+          speedRef.current = 0;
           onExit?.();
         } else if (nearbyRef.current) {
-          yawRef.current = groupRef.current?.rotation.y ?? 0;
+          yawRef.current = group.rotation.y;
           pitchRef.current = -0.14;
           onEnter?.();
         }
+
         event.preventDefault();
         return;
       }
 
-      if (["w", "a", "s", "d", "space"].includes(normalized)) {
-        keysRef.current.add(normalized);
+      keysRef.current.add(key);
+      if (["w", "a", "s", "d", "space"].includes(key)) {
         event.preventDefault();
       }
     };
 
     const up = (event) => {
-      const code = (event.code || "").toLowerCase();
-      const key = (event.key || "").toLowerCase();
-      const normalized =
-        code === "keyw" || key === "w" ? "w" :
-        code === "keys" || key === "s" ? "s" :
-        code === "keya" || key === "a" ? "a" :
-        code === "keyd" || key === "d" ? "d" :
-        code === "space" || key === " " ? "space" :
-        code === "keye" || key === "e" ? "e" : null;
-      if (normalized) {
-        keysRef.current.delete(normalized);
-        if (normalized === "e") eventLockRef.current = false;
+      const key = normalize(event);
+      if (key) {
+        keysRef.current.delete(key);
+        if (key === "e") eventLockRef.current = false;
       }
     };
 
@@ -266,7 +273,7 @@ export default function VehicleController({
       window.removeEventListener("keyup", up, true);
       window.removeEventListener("blur", clear);
     };
-  }, [city, driving, onEnter, onExit, playerRef, pitchRef, vehicleRef, yawRef]);
+  }, [city, driving, onEnter, onExit, pitchRef, playerRef, yawRef]);
 
   useFrame((state, delta) => {
     const group = groupRef.current;
@@ -281,24 +288,24 @@ export default function VehicleController({
     nearbyRef.current = distanceToPlayer <= 4.2;
 
     let speed = speedRef.current;
-    let steering = 0;
 
     if (driving) {
       const keys = keysRef.current;
       const throttle = (keys.has("w") ? 1 : 0) - (keys.has("s") ? 1 : 0);
-      steering = (keys.has("d") ? 1 : 0) - (keys.has("a") ? 1 : 0);
+      const steering = (keys.has("d") ? 1 : 0) - (keys.has("a") ? 1 : 0);
 
-      const maxForward = VEHICLE.maxSpeed;
-      const maxReverse = VEHICLE.reverseSpeed;
-      const target = throttle > 0 ? maxForward : throttle < 0 ? -maxReverse : 0;
-
+      const target = throttle > 0 ? VEHICLE.maxSpeed : throttle < 0 ? -VEHICLE.reverseSpeed : 0;
       if (throttle !== 0) {
         const rate = Math.abs(target) > Math.abs(speed) ? VEHICLE.acceleration : VEHICLE.braking;
-        const step = rate * dt;
-        if (speed < target) speed = Math.min(speed + step, target);
-        if (speed > target) speed = Math.max(speed - step, target);
+        if (speed < target) speed = Math.min(speed + rate * dt, target);
+        if (speed > target) speed = Math.max(speed - rate * dt, target);
       } else {
-        speed = THREE.MathUtils.damp(speed, 0, keys.has("space") ? VEHICLE.handbrakeDrag : VEHICLE.coastDrag, dt);
+        speed = THREE.MathUtils.damp(
+          speed,
+          0,
+          keys.has("space") ? VEHICLE.handbrakeDrag : VEHICLE.coastDrag,
+          dt,
+        );
       }
 
       const speedRatio = THREE.MathUtils.clamp(Math.abs(speed) / VEHICLE.maxSpeed, 0, 1);
@@ -307,57 +314,51 @@ export default function VehicleController({
 
       const forwardX = Math.sin(group.rotation.y);
       const forwardZ = -Math.cos(group.rotation.y);
-      const proposedX = clamp(
+
+      const nextX = clamp(
         group.position.x + forwardX * speed * dt,
         -city.worldBounds + VEHICLE.width / 2,
         city.worldBounds - VEHICLE.width / 2,
       );
-      const proposedZ = clamp(
+      const nextZ = clamp(
         group.position.z + forwardZ * speed * dt,
         -city.worldBounds + VEHICLE.length / 2,
         city.worldBounds - VEHICLE.length / 2,
       );
 
       let collision = false;
-      if (canVehicleOccupy(proposedX, group.position.z, city)) {
-        group.position.x = proposedX;
+      if (canVehicleOccupy(nextX, group.position.z, city)) {
+        group.position.x = nextX;
       } else {
         collision = true;
       }
-      if (canVehicleOccupy(group.position.x, proposedZ, city)) {
-        group.position.z = proposedZ;
+
+      if (canVehicleOccupy(group.position.x, nextZ, city)) {
+        group.position.z = nextZ;
       } else {
         collision = true;
       }
-      if (collision) speed *= 0.2;
+
+      if (collision) speed *= 0.16;
 
       if (bodyRef.current) {
-        const lean = -steering * speedRatio * 0.065;
-        bodyRef.current.rotation.z = THREE.MathUtils.damp(
-          bodyRef.current.rotation.z,
-          lean,
-          8,
-          dt,
-        );
-        bodyRef.current.position.y = THREE.MathUtils.damp(
-          bodyRef.current.position.y,
-          0,
-          8,
-          dt,
-        );
+        const lean = -steering * speedRatio * 0.055;
+        bodyRef.current.rotation.z = THREE.MathUtils.damp(bodyRef.current.rotation.z, lean, 8, dt);
       }
+
+      const wheelSpin = speed * dt / VEHICLE.wheelRadius;
+      [frontLeftRef, frontRightRef, rearLeftRef, rearRightRef].forEach((ref) => {
+        if (ref.current) {
+          ref.current.children[0].rotation.x -= wheelSpin;
+        }
+      });
+
+      const steerAngle = steering * 0.3;
+      if (frontLeftRef.current) frontLeftRef.current.rotation.y = steerAngle;
+      if (frontRightRef.current) frontRightRef.current.rotation.y = steerAngle;
 
       yawRef.current = group.rotation.y;
       speedRef.current = speed;
-
-      const spin = speed * dt / VEHICLE.wheelRadius;
-      [rearLeftRef, rearRightRef, frontLeftRef, frontRightRef].forEach((wheelRef) => {
-        if (wheelRef.current) wheelRef.current.children[0].rotation.x -= spin;
-      });
-
-      const wheelSteer = steering * 0.32;
-      if (frontLeftRef.current) frontLeftRef.current.rotation.y = wheelSteer;
-      if (frontRightRef.current) frontRightRef.current.rotation.y = wheelSteer;
     } else {
       speedRef.current = 0;
       if (bodyRef.current) {
@@ -368,7 +369,6 @@ export default function VehicleController({
     if (state.clock.elapsedTime % 0.08 < dt) {
       onUpdate?.({
         speed: Math.abs(speedRef.current),
-        signedSpeed: speedRef.current,
         gear: driving
           ? Math.abs(speedRef.current) < 0.12
             ? "P"
