@@ -1,11 +1,11 @@
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
 const PLAYER = {
-  radius: 0.45,
-  walkSpeed: 5,
-  sprintSpeed: 8.8,
+  radius: 0.48,
+  walkSpeed: 5.2,
+  sprintSpeed: 9.2,
   jumpSpeed: 8,
   gravity: -22,
   acceleration: 30,
@@ -54,51 +54,87 @@ function PlayerModel({ refs, animationRef }) {
   useFrame((state) => {
     const { moving, sprinting } = animationRef.current;
     const swing = moving
-      ? Math.sin(state.clock.elapsedTime * (sprinting ? 18 : 12)) * 0.48
+      ? Math.sin(state.clock.elapsedTime * (sprinting ? 18 : 12)) * 0.42
       : 0;
 
     if (refs.leftArm.current) refs.leftArm.current.rotation.x = swing;
     if (refs.rightArm.current) refs.rightArm.current.rotation.x = -swing;
-    if (refs.leftLeg.current) refs.leftLeg.current.rotation.x = -swing * 0.75;
-    if (refs.rightLeg.current) refs.rightLeg.current.rotation.x = swing * 0.75;
+    if (refs.leftLeg.current) refs.leftLeg.current.rotation.x = -swing * 0.72;
+    if (refs.rightLeg.current) refs.rightLeg.current.rotation.x = swing * 0.72;
   });
 
   return (
-    <>
-      <mesh position={[0, 1.15, 0]} castShadow>
-        <capsuleGeometry args={[0.42, 0.9, 8, 16]} />
-        <meshStandardMaterial color="#6366f1" roughness={0.42} metalness={0.2} />
+    <group>
+      <mesh position={[0, 1.2, 0]} castShadow>
+        <boxGeometry args={[0.74, 1.15, 0.44]} />
+        <meshStandardMaterial color="#24365b" roughness={0.82} metalness={0.08} />
       </mesh>
-      <mesh position={[0, 2.18, 0]} castShadow>
-        <sphereGeometry args={[0.38, 16, 16]} />
-        <meshStandardMaterial color="#d6ae8b" roughness={0.86} />
-      </mesh>
-      <mesh position={[0, 2.31, -0.02]}>
-        <sphereGeometry args={[0.39, 16, 12]} />
-        <meshStandardMaterial color="#141b2d" roughness={0.9} />
-      </mesh>
-      <mesh position={[0, 1.45, -0.43]}>
-        <boxGeometry args={[0.48, 0.14, 0.03]} />
-        <meshStandardMaterial color="#0b1020" emissive="#6366f1" emissiveIntensity={1.4} />
+      <mesh position={[0, 1.34, -0.25]}>
+        <boxGeometry args={[0.46, 0.16, 0.035]} />
+        <meshStandardMaterial color="#7b8ef0" emissive="#4f5db0" emissiveIntensity={0.18} />
       </mesh>
 
-      <mesh ref={refs.leftArm} position={[-0.55, 1.15, 0]} castShadow>
-        <capsuleGeometry args={[0.12, 0.65, 6, 10]} />
-        <meshStandardMaterial color="#4f46e5" roughness={0.5} />
+      <mesh position={[0, 2.18, 0]} castShadow>
+        <sphereGeometry args={[0.37, 24, 18]} />
+        <meshStandardMaterial color="#9b6b4f" roughness={0.88} />
       </mesh>
-      <mesh ref={refs.rightArm} position={[0.55, 1.15, 0]} castShadow>
-        <capsuleGeometry args={[0.12, 0.65, 6, 10]} />
-        <meshStandardMaterial color="#4f46e5" roughness={0.5} />
+      <mesh position={[0, 2.37, 0]} castShadow>
+        <sphereGeometry args={[0.405, 24, 14]} />
+        <meshStandardMaterial color="#202329" roughness={0.94} />
       </mesh>
-      <mesh ref={refs.leftLeg} position={[-0.2, 0.43, 0]} castShadow>
-        <capsuleGeometry args={[0.14, 0.55, 6, 10]} />
-        <meshStandardMaterial color="#111827" roughness={0.8} />
+      <mesh position={[0, 2.2, -0.33]}>
+        <sphereGeometry args={[0.12, 16, 10]} />
+        <meshStandardMaterial color="#202329" roughness={0.9} />
       </mesh>
-      <mesh ref={refs.rightLeg} position={[0.2, 0.43, 0]} castShadow>
-        <capsuleGeometry args={[0.14, 0.55, 6, 10]} />
-        <meshStandardMaterial color="#111827" roughness={0.8} />
+
+      {[-0.31, 0.31].map((x) => (
+        <mesh key={x} position={[x, 2.19, -0.34]} scale={[0.045, 0.08, 0.03]}>
+          <sphereGeometry args={[1, 12, 8]} />
+          <meshStandardMaterial color="#1a2230" roughness={0.7} />
+        </mesh>
+      ))}
+
+      <mesh ref={refs.leftArm} position={[-0.52, 1.16, 0]} castShadow>
+        <capsuleGeometry args={[0.13, 0.66, 8, 12]} />
+        <meshStandardMaterial color="#304978" roughness={0.78} />
       </mesh>
-    </>
+      <mesh ref={refs.rightArm} position={[0.52, 1.16, 0]} castShadow>
+        <capsuleGeometry args={[0.13, 0.66, 8, 12]} />
+        <meshStandardMaterial color="#304978" roughness={0.78} />
+      </mesh>
+
+      <mesh position={[-0.52, 0.78, 0.02]} castShadow>
+        <sphereGeometry args={[0.14, 14, 10]} />
+        <meshStandardMaterial color="#9b6b4f" roughness={0.9} />
+      </mesh>
+      <mesh position={[0.52, 0.78, 0.02]} castShadow>
+        <sphereGeometry args={[0.14, 14, 10]} />
+        <meshStandardMaterial color="#9b6b4f" roughness={0.9} />
+      </mesh>
+
+      <mesh ref={refs.leftLeg} position={[-0.2, 0.44, 0]} castShadow>
+        <capsuleGeometry args={[0.15, 0.58, 8, 12]} />
+        <meshStandardMaterial color="#101722" roughness={0.88} />
+      </mesh>
+      <mesh ref={refs.rightLeg} position={[0.2, 0.44, 0]} castShadow>
+        <capsuleGeometry args={[0.15, 0.58, 8, 12]} />
+        <meshStandardMaterial color="#101722" roughness={0.88} />
+      </mesh>
+
+      <mesh position={[-0.21, 0.08, -0.09]} castShadow>
+        <boxGeometry args={[0.34, 0.15, 0.72]} />
+        <meshStandardMaterial color="#272c31" roughness={0.58} metalness={0.14} />
+      </mesh>
+      <mesh position={[0.21, 0.08, -0.09]} castShadow>
+        <boxGeometry args={[0.34, 0.15, 0.72]} />
+        <meshStandardMaterial color="#272c31" roughness={0.58} metalness={0.14} />
+      </mesh>
+
+      <mesh position={[0, 1.83, 0]}>
+        <cylinderGeometry args={[0.15, 0.16, 0.2, 12]} />
+        <meshStandardMaterial color="#9b6b4f" roughness={0.9} />
+      </mesh>
+    </group>
   );
 }
 
@@ -262,7 +298,7 @@ export default function PlayerController({
         1 - Math.exp(-14 * dt),
       );
       visualRef.current.position.y = moving
-        ? Math.sin(state.clock.elapsedTime * (keys.has("shift") ? 13 : 9)) * 0.055
+        ? Math.sin(state.clock.elapsedTime * (keys.has("shift") ? 13 : 9)) * 0.045
         : 0;
     }
 
@@ -272,19 +308,22 @@ export default function PlayerController({
         sprinting: keys.has("shift") && moving,
         grounded: groundedRef.current,
         position: [group.position.x, group.position.y, group.position.z],
-        input: { w: keys.has("w"), a: keys.has("a"), s: keys.has("s"), d: keys.has("d") },
+        input: {
+          w: keys.has("w"),
+          a: keys.has("a"),
+          s: keys.has("s"),
+          d: keys.has("d"),
+        },
       });
     }
   });
-
-
 
   return (
     <group ref={groupRef} position={city.spawn}>
       <group ref={visualRef}>
         <PlayerModel refs={refs} animationRef={animationRef} />
       </group>
-      <pointLight position={[0, 1.5, 0]} intensity={0.5} distance={3.5} color="#6366f1" />
+      <pointLight position={[0, 1.6, 0]} intensity={0.32} distance={3.2} color="#7480d9" />
     </group>
   );
 }
