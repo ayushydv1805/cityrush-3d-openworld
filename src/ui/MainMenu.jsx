@@ -35,7 +35,7 @@ export default function MainMenu({ onEnter, onControls }) {
         </div>
 
         <div className="stats">
-          <div><strong>36</strong><span>SECTORS PLANNED</span></div>
+          <div><strong>16</strong><span>SECTORS ACTIVE</span></div><div><strong>36</strong><span>SECTORS PLANNED</span></div>
           <div><strong>3D</strong><span>REAL-TIME CITY</span></div>
           <div><strong>P3</strong><span>FIRST CITY ONLINE</span></div>
         </div>
