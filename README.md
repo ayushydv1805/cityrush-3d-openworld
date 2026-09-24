@@ -2,23 +2,28 @@
 
 **Your City. Your Ride. Your Run.**
 
-## Phase 2 — Player + Camera
+## Phase 3 — First Real City
 
-Phase 2 turns the foundation into the first playable third-person experience.
+Phase 3 replaces the small training box with the first full Chandigarh-inspired city foundation.
 
 ### Included
-- Procedural 3D player character
-- WASD movement relative to the camera
-- Shift sprint
-- Space jump with gravity
-- Mouse-controlled third-person camera
-- Smooth camera follow
-- Player collision against buildings and world boundaries
-- Walk/sprint animation
-- Training District with roads, buildings, trees and street lights
-- Gameplay telemetry HUD
-- Pointer-lock control flow
-- Responsive controls/settings panel
+- Chandigarh sector-style road grid
+- 36-sector naming system
+- Wide boulevard network
+- Road lane markings
+- Multiple roundabouts
+- Green public parks with walking paths
+- Procedural city buildings with windows
+- Civic Complex landmark
+- Sukhna Lake-inspired waterfront landmark
+- City entrance signage
+- Street lighting
+- Larger explorable world
+- Player collision against city structures
+- Camera-relative W/A/S/D movement
+- Shift sprint and Space jump
+- Third-person mouse camera
+- Input-state HUD showing W/A/S/D keys
 
 ### Stack
 React + Vite, Three.js, React Three Fiber, React Three Drei, Node.js, Express and Socket.IO.
@@ -27,10 +32,4 @@ React + Vite, Three.js, React Three Fiber, React Three Drei, Node.js, Express an
 Chandigarh, Rewari, Gurugram, Delhi.
 
 ### Roadmap
-Foundation → **Player/Camera** → City → Vehicles → Traffic/NPCs → Missions → Economy → Garage → Reputation → Police/Heat → Day/Night → Weather → Hidden Locations → Collectibles → Story → Social → Advanced Missions → Dynamic Events → Advanced Driving → Multiplayer → Profiles/Leaderboards → Audio → Graphics/UI polish → Save → Optimization → Testing → Production.
-
-
-Current gameplay patch: reliable W/A/S/D camera-relative movement.
-
-
-Vercel integration verification checkpoint.
+Foundation → Player/Camera → **First City** → Vehicles → Traffic/NPCs → Missions → Economy → Garage → Reputation → Police/Heat → Day/Night → Weather → Hidden Locations → Collectibles → Story → Social → Advanced Missions → Dynamic Events → Advanced Driving → Multiplayer → Profiles/Leaderboards → Audio → Graphics/UI polish → Save → Optimization → Testing → Production.
