@@ -5,11 +5,23 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import ChandigarhWorld from "./game/world/ChandigarhWorld";
 import { CITY } from "./game/city/chandigarh";
 import PlayerController from "./game/player/PlayerController";
+import VehicleController from "./game/vehicles/VehicleController";
 import ThirdPersonCamera from "./game/camera/ThirdPersonCamera";
 import GameHUD from "./ui/GameHUD";
 import MainMenu from "./ui/MainMenu";
 
-function Scene({ playerRef, yawRef, pitchRef, locked, onUpdate }) {
+function Scene({
+  playerRef,
+  vehicleRef,
+  yawRef,
+  pitchRef,
+  locked,
+  driving,
+  onPlayerUpdate,
+  onVehicleUpdate,
+  onEnterVehicle,
+  onExitVehicle,
+}) {
   return (
     <>
       <PerspectiveCamera makeDefault fov={56} near={0.1} far={300} />
@@ -44,11 +56,26 @@ function Scene({ playerRef, yawRef, pitchRef, locked, onUpdate }) {
         yawRef={yawRef}
         pitchRef={pitchRef}
         locked={locked}
-        onUpdate={onUpdate}
+        enabled={!driving}
+        onUpdate={onPlayerUpdate}
+      />
+
+      <VehicleController
+        city={CITY}
+        playerRef={playerRef}
+        vehicleRef={vehicleRef}
+        yawRef={yawRef}
+        pitchRef={pitchRef}
+        driving={driving}
+        onEnter={onEnterVehicle}
+        onExit={onExitVehicle}
+        onUpdate={onVehicleUpdate}
       />
 
       <ThirdPersonCamera
         playerRef={playerRef}
+        vehicleRef={vehicleRef}
+        driving={driving}
         yawRef={yawRef}
         pitchRef={pitchRef}
       />
@@ -59,7 +86,9 @@ function Scene({ playerRef, yawRef, pitchRef, locked, onUpdate }) {
 export default function App() {
   const [started, setStarted] = useState(false);
   const [locked, setLocked] = useState(false);
+  const [driving, setDriving] = useState(false);
   const [controlsOpen, setControlsOpen] = useState(false);
+
   const [info, setInfo] = useState({
     speed: 0,
     sprinting: false,
@@ -68,7 +97,16 @@ export default function App() {
     input: { w: false, a: false, s: false, d: false },
   });
 
+  const [vehicleInfo, setVehicleInfo] = useState({
+    speed: 0,
+    gear: "P",
+    nearVehicle: true,
+    handbrake: false,
+    input: { w: false, a: false, s: false, d: false },
+  });
+
   const playerRef = useRef(null);
+  const vehicleRef = useRef(null);
   const yawRef = useRef(0);
   const pitchRef = useRef(-0.16);
 
@@ -99,18 +137,35 @@ export default function App() {
   const enterCity = useCallback(() => {
     setControlsOpen(false);
     setStarted(true);
+    setDriving(false);
     yawRef.current = 0;
+    pitchRef.current = -0.16;
+  }, []);
+
+  const enterVehicle = useCallback(() => {
+    setDriving(true);
+    yawRef.current = vehicleRef.current?.rotation.y ?? 0;
+    pitchRef.current = -0.14;
+  }, []);
+
+  const exitVehicle = useCallback(() => {
+    setDriving(false);
     pitchRef.current = -0.16;
   }, []);
 
   const exitCity = useCallback(() => {
     document.exitPointerLock?.();
     setLocked(false);
+    setDriving(false);
     setStarted(false);
   }, []);
 
-  const handleUpdate = useCallback((next) => {
+  const handlePlayerUpdate = useCallback((next) => {
     setInfo(next);
+  }, []);
+
+  const handleVehicleUpdate = useCallback((next) => {
+    setVehicleInfo(next);
   }, []);
 
   if (started) {
@@ -131,16 +186,23 @@ export default function App() {
         >
           <Scene
             playerRef={playerRef}
+            vehicleRef={vehicleRef}
             yawRef={yawRef}
             pitchRef={pitchRef}
             locked={locked}
-            onUpdate={handleUpdate}
+            driving={driving}
+            onPlayerUpdate={handlePlayerUpdate}
+            onVehicleUpdate={handleVehicleUpdate}
+            onEnterVehicle={enterVehicle}
+            onExitVehicle={exitVehicle}
           />
         </Canvas>
 
         <GameHUD
           city={CITY}
           info={info}
+          vehicleInfo={vehicleInfo}
+          driving={driving}
           locked={locked}
           onTakeControl={takeControl}
           onExit={exitCity}
@@ -167,7 +229,7 @@ export default function App() {
           >
             <div className="settings-head">
               <div>
-                <span className="eyebrow">PHASE 3</span>
+                <span className="eyebrow">PHASE 4</span>
                 <h2>CONTROLS</h2>
               </div>
               <button
@@ -179,12 +241,12 @@ export default function App() {
             </div>
 
             <div className="settings-grid">
-              <div><b>W A S D</b><span>Move in the city</span></div>
-              <div><b>SHIFT</b><span>Sprint</span></div>
-              <div><b>SPACE</b><span>Jump</span></div>
+              <div><b>W A S D</b><span>Move / drive</span></div>
+              <div><b>SHIFT</b><span>Sprint on foot</span></div>
+              <div><b>SPACE</b><span>Jump / handbrake</span></div>
+              <div><b>E</b><span>Enter / exit vehicle</span></div>
               <div><b>MOUSE</b><span>Rotate camera</span></div>
               <div><b>ESC</b><span>Release mouse control</span></div>
-              <div><b>CITY</b><span>Chandigarh sector grid</span></div>
             </div>
 
             <button className="primary settings-play" onClick={enterCity}>

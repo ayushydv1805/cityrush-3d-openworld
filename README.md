@@ -2,9 +2,9 @@
 
 **Your City. Your Ride. Your Run.**
 
-## Phase 3 — First Real City
+## Phase 4 — Vehicle System
 
-Phase 3 replaces the small training box with the first full Chandigarh-inspired city foundation.
+Phase 4 adds the first drivable vehicle to the Chandigarh city foundation.
 
 ### Included
 - Chandigarh sector-style road grid
@@ -14,8 +14,8 @@ Phase 3 replaces the small training box with the first full Chandigarh-inspired 
 - Road lane markings
 - Multiple roundabouts
 - Green public parks with walking paths
-- Procedural city buildings with windows
-- Civic Complex landmark
+- Procedural city buildings with windows and balconies
+- Capitol/Civic district landmark
 - Sukhna Lake-inspired waterfront landmark
 - City entrance signage
 - Street lighting
@@ -24,7 +24,23 @@ Phase 3 replaces the small training box with the first full Chandigarh-inspired 
 - Camera-relative W/A/S/D movement
 - Shift sprint and Space jump
 - Third-person mouse camera
-- Input-state HUD showing W/A/S/D keys
+- Detailed human-styled player model
+- First drivable Civic Cruiser
+- Enter / exit vehicle flow with E
+- Arcade acceleration, braking and reverse
+- Steering with visible front-wheel angle
+- Wheel rotation and vehicle body lean
+- Vehicle collision against city structures
+- Vehicle-focused third-person camera
+- Driving telemetry, gear and control HUD
+
+### Vehicle controls
+- W: accelerate
+- S: brake / reverse
+- A / D: steer
+- Space: handbrake
+- E: enter / exit vehicle
+- Mouse: camera
 
 ### Stack
 React + Vite, Three.js, React Three Fiber, React Three Drei, Node.js, Express and Socket.IO.
@@ -33,4 +49,4 @@ React + Vite, Three.js, React Three Fiber, React Three Drei, Node.js, Express an
 Chandigarh, Rewari, Gurugram, Delhi.
 
 ### Roadmap
-Foundation → Player/Camera → **First City** → Vehicles → Traffic/NPCs → Missions → Economy → Garage → Reputation → Police/Heat → Day/Night → Weather → Hidden Locations → Collectibles → Story → Social → Advanced Missions → Dynamic Events → Advanced Driving → Multiplayer → Profiles/Leaderboards → Audio → Graphics/UI polish → Save → Optimization → Testing → Production.
+Foundation → Player/Camera → First City → **Vehicles** → Traffic/NPCs → Missions → Economy → Garage → Reputation → Police/Heat → Day/Night → Weather → Hidden Locations → Collectibles → Story → Social → Advanced Missions → Dynamic Events → Advanced Driving → Multiplayer → Profiles/Leaderboards → Audio → Graphics/UI polish → Save → Optimization → Testing → Production.

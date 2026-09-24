@@ -73,7 +73,6 @@ function PlayerModel({ refs, animationRef }) {
         <boxGeometry args={[0.46, 0.16, 0.035]} />
         <meshStandardMaterial color="#7b8ef0" emissive="#4f5db0" emissiveIntensity={0.18} />
       </mesh>
-
       <mesh position={[0, 2.18, 0]} castShadow>
         <sphereGeometry args={[0.37, 24, 18]} />
         <meshStandardMaterial color="#9b6b4f" roughness={0.88} />
@@ -86,14 +85,12 @@ function PlayerModel({ refs, animationRef }) {
         <sphereGeometry args={[0.12, 16, 10]} />
         <meshStandardMaterial color="#202329" roughness={0.9} />
       </mesh>
-
       {[-0.31, 0.31].map((x) => (
         <mesh key={x} position={[x, 2.19, -0.34]} scale={[0.045, 0.08, 0.03]}>
           <sphereGeometry args={[1, 12, 8]} />
           <meshStandardMaterial color="#1a2230" roughness={0.7} />
         </mesh>
       ))}
-
       <mesh ref={refs.leftArm} position={[-0.52, 1.16, 0]} castShadow>
         <capsuleGeometry args={[0.13, 0.66, 8, 12]} />
         <meshStandardMaterial color="#304978" roughness={0.78} />
@@ -102,7 +99,6 @@ function PlayerModel({ refs, animationRef }) {
         <capsuleGeometry args={[0.13, 0.66, 8, 12]} />
         <meshStandardMaterial color="#304978" roughness={0.78} />
       </mesh>
-
       <mesh position={[-0.52, 0.78, 0.02]} castShadow>
         <sphereGeometry args={[0.14, 14, 10]} />
         <meshStandardMaterial color="#9b6b4f" roughness={0.9} />
@@ -111,7 +107,6 @@ function PlayerModel({ refs, animationRef }) {
         <sphereGeometry args={[0.14, 14, 10]} />
         <meshStandardMaterial color="#9b6b4f" roughness={0.9} />
       </mesh>
-
       <mesh ref={refs.leftLeg} position={[-0.2, 0.44, 0]} castShadow>
         <capsuleGeometry args={[0.15, 0.58, 8, 12]} />
         <meshStandardMaterial color="#101722" roughness={0.88} />
@@ -120,7 +115,6 @@ function PlayerModel({ refs, animationRef }) {
         <capsuleGeometry args={[0.15, 0.58, 8, 12]} />
         <meshStandardMaterial color="#101722" roughness={0.88} />
       </mesh>
-
       <mesh position={[-0.21, 0.08, -0.09]} castShadow>
         <boxGeometry args={[0.34, 0.15, 0.72]} />
         <meshStandardMaterial color="#272c31" roughness={0.58} metalness={0.14} />
@@ -129,7 +123,6 @@ function PlayerModel({ refs, animationRef }) {
         <boxGeometry args={[0.34, 0.15, 0.72]} />
         <meshStandardMaterial color="#272c31" roughness={0.58} metalness={0.14} />
       </mesh>
-
       <mesh position={[0, 1.83, 0]}>
         <cylinderGeometry args={[0.15, 0.16, 0.2, 12]} />
         <meshStandardMaterial color="#9b6b4f" roughness={0.9} />
@@ -144,6 +137,7 @@ export default function PlayerController({
   yawRef,
   pitchRef,
   locked,
+  enabled = true,
   onUpdate,
 }) {
   const keysRef = useRef(new Set());
@@ -163,38 +157,39 @@ export default function PlayerController({
   useEffect(() => {
     const down = (event) => {
       const key = normalizeKey(event);
-      if (!key) return;
+      if (!key || !enabled) return;
       keysRef.current.add(key);
       if (key === "space") jumpQueuedRef.current = true;
-      if (["w", "a", "s", "d", "shift", "space"].includes(key)) {
-        event.preventDefault();
-      }
+      if (["w", "a", "s", "d", "shift", "space"].includes(key)) event.preventDefault();
     };
-
     const up = (event) => {
       const key = normalizeKey(event);
       if (key) keysRef.current.delete(key);
     };
-
     const clear = () => {
       keysRef.current.clear();
       jumpQueuedRef.current = false;
     };
-
     window.addEventListener("keydown", down, { capture: true, passive: false });
     window.addEventListener("keyup", up, { capture: true });
     window.addEventListener("blur", clear);
-
     return () => {
       window.removeEventListener("keydown", down, true);
       window.removeEventListener("keyup", up, true);
       window.removeEventListener("blur", clear);
     };
-  }, []);
+  }, [enabled]);
+
+  useEffect(() => {
+    if (!enabled) {
+      keysRef.current.clear();
+      jumpQueuedRef.current = false;
+    }
+  }, [enabled]);
 
   useEffect(() => {
     const move = (event) => {
-      if (!locked) return;
+      if (!locked || !enabled) return;
       yawRef.current -= event.movementX * 0.0027;
       pitchRef.current = THREE.MathUtils.clamp(
         pitchRef.current - event.movementY * 0.002,
@@ -202,16 +197,13 @@ export default function PlayerController({
         0.36,
       );
     };
-
     window.addEventListener("mousemove", move);
     return () => window.removeEventListener("mousemove", move);
-  }, [locked, pitchRef, yawRef]);
+  }, [enabled, locked, pitchRef, yawRef]);
 
   useEffect(() => {
     playerRef.current = groupRef.current;
-    if (groupRef.current) {
-      groupRef.current.position.set(city.spawn[0], city.spawn[1], city.spawn[2]);
-    }
+    if (groupRef.current) groupRef.current.position.set(city.spawn[0], city.spawn[1], city.spawn[2]);
     return () => {
       if (playerRef.current === groupRef.current) playerRef.current = null;
     };
@@ -219,16 +211,14 @@ export default function PlayerController({
 
   useFrame((state, delta) => {
     const group = groupRef.current;
-    if (!group) return;
+    if (!group || !enabled) return;
 
     const dt = Math.min(delta, 0.04);
     const keys = keysRef.current;
     const velocity = velocityRef.current;
-
     const xInput = (keys.has("d") ? 1 : 0) - (keys.has("a") ? 1 : 0);
     const zInput = (keys.has("w") ? 1 : 0) - (keys.has("s") ? 1 : 0);
     const input = new THREE.Vector2(xInput, zInput);
-
     if (input.lengthSq() > 1) input.normalize();
 
     const yaw = yawRef.current;
@@ -236,10 +226,10 @@ export default function PlayerController({
     const forwardZ = -Math.cos(yaw);
     const rightX = Math.cos(yaw);
     const rightZ = Math.sin(yaw);
-
     const moveX = rightX * input.x + forwardX * input.y;
     const moveZ = rightZ * input.x + forwardZ * input.y;
     const moving = input.lengthSq() > 0.001;
+
     animationRef.current.moving = moving;
     animationRef.current.sprinting = keys.has("shift") && moving;
 
@@ -248,7 +238,6 @@ export default function PlayerController({
     const targetVZ = moveZ * targetSpeed;
     const response = moving ? PLAYER.acceleration : PLAYER.deceleration;
     const blend = 1 - Math.exp(-response * dt);
-
     velocity.x = THREE.MathUtils.lerp(velocity.x, targetVX, blend);
     velocity.z = THREE.MathUtils.lerp(velocity.z, targetVZ, blend);
 
@@ -260,43 +249,22 @@ export default function PlayerController({
 
     velocity.y += PLAYER.gravity * dt;
     group.position.y += velocity.y * dt;
-
     if (group.position.y <= 0) {
       group.position.y = 0;
       velocity.y = 0;
       groundedRef.current = true;
     }
 
-    const proposedX = clamp(
-      group.position.x + velocity.x * dt,
-      -city.worldBounds + PLAYER.radius,
-      city.worldBounds - PLAYER.radius,
-    );
-    const proposedZ = clamp(
-      group.position.z + velocity.z * dt,
-      -city.worldBounds + PLAYER.radius,
-      city.worldBounds - PLAYER.radius,
-    );
-
-    if (canOccupy(proposedX, group.position.z, city)) {
-      group.position.x = proposedX;
-    } else {
-      velocity.x = 0;
-    }
-
-    if (canOccupy(group.position.x, proposedZ, city)) {
-      group.position.z = proposedZ;
-    } else {
-      velocity.z = 0;
-    }
+    const proposedX = clamp(group.position.x + velocity.x * dt, -city.worldBounds + PLAYER.radius, city.worldBounds - PLAYER.radius);
+    const proposedZ = clamp(group.position.z + velocity.z * dt, -city.worldBounds + PLAYER.radius, city.worldBounds - PLAYER.radius);
+    if (canOccupy(proposedX, group.position.z, city)) group.position.x = proposedX;
+    else velocity.x = 0;
+    if (canOccupy(group.position.x, proposedZ, city)) group.position.z = proposedZ;
+    else velocity.z = 0;
 
     if (visualRef.current) {
       const targetYaw = moving ? Math.atan2(moveX, -moveZ) : visualRef.current.rotation.y;
-      visualRef.current.rotation.y = THREE.MathUtils.lerp(
-        visualRef.current.rotation.y,
-        targetYaw,
-        1 - Math.exp(-14 * dt),
-      );
+      visualRef.current.rotation.y = THREE.MathUtils.lerp(visualRef.current.rotation.y, targetYaw, 1 - Math.exp(-14 * dt));
       visualRef.current.position.y = moving
         ? Math.sin(state.clock.elapsedTime * (keys.has("shift") ? 13 : 9)) * 0.045
         : 0;
@@ -308,18 +276,13 @@ export default function PlayerController({
         sprinting: keys.has("shift") && moving,
         grounded: groundedRef.current,
         position: [group.position.x, group.position.y, group.position.z],
-        input: {
-          w: keys.has("w"),
-          a: keys.has("a"),
-          s: keys.has("s"),
-          d: keys.has("d"),
-        },
+        input: { w: keys.has("w"), a: keys.has("a"), s: keys.has("s"), d: keys.has("d") },
       });
     }
   });
 
   return (
-    <group ref={groupRef} position={city.spawn}>
+    <group ref={groupRef} position={city.spawn} visible={enabled}>
       <group ref={visualRef}>
         <PlayerModel refs={refs} animationRef={animationRef} />
       </group>
