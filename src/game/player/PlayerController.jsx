@@ -50,13 +50,18 @@ function normalizeKey(event) {
   return null;
 }
 
-function PlayerModel({ refs, moving, sprinting }) {
-  const swing = moving ? Math.sin(performance.now() * (sprinting ? 0.014 : 0.01)) * 0.48 : 0;
+function PlayerModel({ refs, animationRef }) {
+  useFrame((state) => {
+    const { moving, sprinting } = animationRef.current;
+    const swing = moving
+      ? Math.sin(state.clock.elapsedTime * (sprinting ? 18 : 12)) * 0.48
+      : 0;
 
-  if (refs.leftArm.current) refs.leftArm.current.rotation.x = swing;
-  if (refs.rightArm.current) refs.rightArm.current.rotation.x = -swing;
-  if (refs.leftLeg.current) refs.leftLeg.current.rotation.x = -swing * 0.75;
-  if (refs.rightLeg.current) refs.rightLeg.current.rotation.x = swing * 0.75;
+    if (refs.leftArm.current) refs.leftArm.current.rotation.x = swing;
+    if (refs.rightArm.current) refs.rightArm.current.rotation.x = -swing;
+    if (refs.leftLeg.current) refs.leftLeg.current.rotation.x = -swing * 0.75;
+    if (refs.rightLeg.current) refs.rightLeg.current.rotation.x = swing * 0.75;
+  });
 
   return (
     <>
@@ -111,6 +116,7 @@ export default function PlayerController({
   const groundedRef = useRef(true);
   const groupRef = useRef();
   const visualRef = useRef();
+  const animationRef = useRef({ moving: false, sprinting: false });
   const refs = {
     leftArm: useRef(),
     rightArm: useRef(),
@@ -198,6 +204,8 @@ export default function PlayerController({
     const moveX = rightX * input.x + forwardX * input.y;
     const moveZ = rightZ * input.x + forwardZ * input.y;
     const moving = input.lengthSq() > 0.001;
+    animationRef.current.moving = moving;
+    animationRef.current.sprinting = keys.has("shift") && moving;
 
     const targetSpeed = keys.has("shift") ? PLAYER.sprintSpeed : PLAYER.walkSpeed;
     const targetVX = moveX * targetSpeed;
@@ -274,7 +282,7 @@ export default function PlayerController({
   return (
     <group ref={groupRef} position={city.spawn}>
       <group ref={visualRef}>
-        <PlayerModel refs={refs} moving={animation.moving} sprinting={animation.sprinting} />
+        <PlayerModel refs={refs} animationRef={animationRef} />
       </group>
       <pointLight position={[0, 1.5, 0]} intensity={0.5} distance={3.5} color="#6366f1" />
     </group>
