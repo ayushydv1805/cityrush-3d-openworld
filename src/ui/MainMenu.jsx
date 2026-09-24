@@ -13,16 +13,16 @@ export default function MainMenu({ onEnter, onControls }) {
       </nav>
 
       <section className="hero">
-        <p className="eyebrow">PHASE 3 • FIRST REAL CITY</p>
+        <p className="eyebrow">PHASE 4 • VEHICLE SYSTEM</p>
         <h1>
           YOUR CITY.<br />
           <em>YOUR RIDE.</em><br />
           YOUR RUN.
         </h1>
         <p className="lead">
-          Welcome to the first City Rush district. Explore a Chandigarh-inspired
-          sector grid with wide boulevards, green parks, roundabouts and a growing
-          city skyline.
+          Step into Chandigarh and take the Civic Cruiser onto the boulevard.
+          Walk the city, enter your car, steer through the sector grid and build
+          toward the larger City Rush world.
         </p>
 
         <div className="actions">
@@ -35,15 +35,16 @@ export default function MainMenu({ onEnter, onControls }) {
         </div>
 
         <div className="stats">
-          <div><strong>16</strong><span>SECTORS ACTIVE</span></div><div><strong>36</strong><span>SECTORS PLANNED</span></div>
-          <div><strong>3D</strong><span>REAL-TIME CITY</span></div>
-          <div><strong>P3</strong><span>FIRST CITY ONLINE</span></div>
+          <div><strong>16</strong><span>SECTORS ACTIVE</span></div>
+          <div><strong>1</strong><span>DRIVABLE VEHICLE</span></div>
+          <div><strong>4</strong><span>DRIVING CONTROLS</span></div>
+          <div><strong>P4</strong><span>VEHICLE SYSTEM</span></div>
         </div>
       </section>
 
       <footer>
         <span>CHANDIGARH • REWARI • GURUGRAM • DELHI</span>
-        <span>v0.3 PHASE 3</span>
+        <span>v0.4 PHASE 4</span>
       </footer>
     </main>
   );
