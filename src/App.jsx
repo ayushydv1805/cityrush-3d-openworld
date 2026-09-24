@@ -1,7 +1,6 @@
 import { Canvas } from "@react-three/fiber";
 import { PerspectiveCamera } from "@react-three/drei";
 import { useCallback, useEffect, useRef, useState } from "react";
-import * as THREE from "three";
 
 import ChandigarhWorld from "./game/world/ChandigarhWorld";
 import { CITY } from "./game/city/chandigarh";
@@ -13,26 +12,28 @@ import MainMenu from "./ui/MainMenu";
 function Scene({ playerRef, yawRef, pitchRef, locked, onUpdate }) {
   return (
     <>
-      <PerspectiveCamera makeDefault fov={58} near={0.1} far={260} />
-      <color attach="background" args={["#050810"]} />
-      <fog attach="fog" args={["#050810", 52, 190]} />
+      <PerspectiveCamera makeDefault fov={56} near={0.1} far={300} />
 
-      <ambientLight intensity={1.05} />
+      <color attach="background" args={["#b7c7cf"]} />
+      <fog attach="fog" args={["#b7c7cf", 72, 230]} />
+
+      <ambientLight intensity={1.35} />
       <hemisphereLight
-        intensity={0.62}
-        groundColor="#102016"
-        color="#818cf8"
+        intensity={1.0}
+        groundColor="#64715d"
+        color="#cfe2ff"
       />
       <directionalLight
         castShadow
-        position={[35, 48, 18]}
-        intensity={2.5}
+        position={[45, 65, 28]}
+        intensity={3.2}
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
-        shadow-camera-left={-70}
-        shadow-camera-right={70}
-        shadow-camera-top={70}
-        shadow-camera-bottom={-70}
+        shadow-camera-left={-78}
+        shadow-camera-right={78}
+        shadow-camera-top={78}
+        shadow-camera-bottom={-78}
+        shadow-bias={-0.00025}
       />
 
       <ChandigarhWorld />
