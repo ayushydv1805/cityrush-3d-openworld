@@ -14,15 +14,18 @@ app.use(express.json());
 app.get("/", (_, res) => res.json({
   name: "CityRush 3D Server",
   status: "online",
-  version: "0.3.0",
-  phase: 3,
+  version: "0.4.0",
+  phase: 4,
+  city: "Chandigarh",
+  systems: ["city", "player", "vehicle"],
 }));
 
 app.get("/health", (_, res) => res.json({
   ok: true,
-  phase: 3,
-  version: "0.3.0",
+  phase: 4,
+  version: "0.4.0",
   city: "Chandigarh",
+  vehicleSystem: "online",
   timestamp: new Date().toISOString(),
 }));
 
@@ -36,9 +39,10 @@ const io = new Server(httpServer, {
 io.on("connection", (socket) => {
   socket.emit("server:ready", {
     id: socket.id,
-    version: "0.3.0",
-    phase: 3,
+    version: "0.4.0",
+    phase: 4,
     city: "Chandigarh",
+    vehicleSystem: "online",
   });
 });
 
