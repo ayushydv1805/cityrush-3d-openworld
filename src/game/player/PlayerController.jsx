@@ -144,6 +144,7 @@ export default function PlayerController({
   yawRef,
   pitchRef,
   locked,
+  enabled = true,
   onUpdate,
 }) {
   const keysRef = useRef(new Set());
@@ -164,8 +165,11 @@ export default function PlayerController({
     const down = (event) => {
       const key = normalizeKey(event);
       if (!key) return;
+      if (!enabled) return;
+
       keysRef.current.add(key);
       if (key === "space") jumpQueuedRef.current = true;
+
       if (["w", "a", "s", "d", "shift", "space"].includes(key)) {
         event.preventDefault();
       }
@@ -190,11 +194,18 @@ export default function PlayerController({
       window.removeEventListener("keyup", up, true);
       window.removeEventListener("blur", clear);
     };
-  }, []);
+  }, [enabled]);
+
+  useEffect(() => {
+    if (!enabled) {
+      keysRef.current.clear();
+      jumpQueuedRef.current = false;
+    }
+  }, [enabled]);
 
   useEffect(() => {
     const move = (event) => {
-      if (!locked) return;
+      if (!locked || !enabled) return;
       yawRef.current -= event.movementX * 0.0027;
       pitchRef.current = THREE.MathUtils.clamp(
         pitchRef.current - event.movementY * 0.002,
@@ -205,7 +216,7 @@ export default function PlayerController({
 
     window.addEventListener("mousemove", move);
     return () => window.removeEventListener("mousemove", move);
-  }, [locked, pitchRef, yawRef]);
+  }, [enabled, locked, pitchRef, yawRef]);
 
   useEffect(() => {
     playerRef.current = groupRef.current;
@@ -220,6 +231,8 @@ export default function PlayerController({
   useFrame((state, delta) => {
     const group = groupRef.current;
     if (!group) return;
+
+    if (!enabled) return;
 
     const dt = Math.min(delta, 0.04);
     const keys = keysRef.current;
@@ -240,6 +253,7 @@ export default function PlayerController({
     const moveX = rightX * input.x + forwardX * input.y;
     const moveZ = rightZ * input.x + forwardZ * input.y;
     const moving = input.lengthSq() > 0.001;
+
     animationRef.current.moving = moving;
     animationRef.current.sprinting = keys.has("shift") && moving;
 
@@ -319,7 +333,7 @@ export default function PlayerController({
   });
 
   return (
-    <group ref={groupRef} position={city.spawn}>
+    <group ref={groupRef} position={city.spawn} visible={enabled}>
       <group ref={visualRef}>
         <PlayerModel refs={refs} animationRef={animationRef} />
       </group>
