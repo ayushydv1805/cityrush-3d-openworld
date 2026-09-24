@@ -31,3 +31,6 @@ Foundation → **Player/Camera** → City → Vehicles → Traffic/NPCs → Miss
 
 
 Current gameplay patch: reliable W/A/S/D camera-relative movement.
+
+
+Vercel integration verification checkpoint.
