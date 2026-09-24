@@ -26,7 +26,7 @@ export default function GameHUD({ city, info, locked, onTakeControl, onExit }) {
       <div className="city-badge">
         <span className="city-kicker">CURRENT DISTRICT</span>
         <strong>{city.name.toUpperCase()}</strong>
-        <small>SECTOR GRID • {city.sectorIds.length} SECTORS</small>
+        <small>SECTOR GRID • {city.sectorIds.length} ACTIVE • 36 PLANNED</small>
       </div>
 
       <div className="game-bottom">
