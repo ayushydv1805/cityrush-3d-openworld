@@ -8,7 +8,8 @@ Phase 3 replaces the small training box with the first full Chandigarh-inspired 
 
 ### Included
 - Chandigarh sector-style road grid
-- 36-sector naming system
+- 16 playable sectors in the first city slice
+- 36-sector expansion plan
 - Wide boulevard network
 - Road lane markings
 - Multiple roundabouts
