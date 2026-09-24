@@ -1,5 +1,5 @@
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 
 const PLAYER = {
@@ -269,12 +269,12 @@ export default function PlayerController({
     }
   });
 
-  const moving = true;
+
 
   return (
     <group ref={groupRef} position={city.spawn}>
       <group ref={visualRef}>
-        <PlayerModel refs={refs} moving={moving} sprinting={keysRef.current.has("shift")} />
+        <PlayerModel refs={refs} moving={animation.moving} sprinting={animation.sprinting} />
       </group>
       <pointLight position={[0, 1.5, 0]} intensity={0.5} distance={3.5} color="#6366f1" />
     </group>
