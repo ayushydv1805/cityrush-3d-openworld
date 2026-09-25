@@ -3,6 +3,7 @@ import { PerspectiveCamera } from "@react-three/drei";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import ChandigarhWorld from "./game/world/ChandigarhWorld";
+import TrafficWorld from "./game/world/TrafficWorld";
 import { CITY } from "./game/city/chandigarh";
 import PlayerController from "./game/player/PlayerController";
 import VehicleController from "./game/vehicles/VehicleController";
@@ -49,6 +50,7 @@ function Scene({
       />
 
       <ChandigarhWorld />
+      <TrafficWorld />
 
       <PlayerController
         city={CITY}
@@ -229,7 +231,7 @@ export default function App() {
           >
             <div className="settings-head">
               <div>
-                <span className="eyebrow">PHASE 4</span>
+                <span className="eyebrow">PHASE 5</span>
                 <h2>CONTROLS</h2>
               </div>
               <button
