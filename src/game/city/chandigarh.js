@@ -92,7 +92,7 @@ const civicComplex = {
 export const CITY = {
   name: "Chandigarh",
   subtitle: "Sector Grid",
-  version: "0.4.0",
+  version: "0.5.0",
   worldBounds: WORLD_BOUNDS,
   roadWidth: ROAD_WIDTH,
   roadCenters: ROAD_CENTERS,
@@ -105,6 +105,8 @@ export const CITY = {
   lake,
   civicComplex,
   spawn: [-20, 0, 12],
+  trafficVehicles: 14,
+  pedestrianCount: 12,
   vehicleSpawn: [-24, 0.42, 12],
   obstacles: [
     ...buildings.map((b) => ({
