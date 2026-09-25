@@ -1,12 +1,4 @@
-export default function GameHUD({
-  city,
-  info,
-  vehicleInfo,
-  driving,
-  locked,
-  onTakeControl,
-  onExit,
-}) {
+export default function GameHUD({ city, info, vehicleInfo, driving, locked, onTakeControl, onExit }) {
   const active = driving ? vehicleInfo : info;
   const kmh = Math.round((active?.speed ?? 0) * 3.6);
   const input = active?.input ?? { w: false, a: false, s: false, d: false };
@@ -23,8 +15,8 @@ export default function GameHUD({
         </div>
 
         <div className="game-phase">
-          PHASE 4
-          <span>VEHICLES</span>
+          PHASE 5
+          <span>TRAFFIC + NPCs</span>
         </div>
 
         <button className="game-exit" onClick={onExit}>
@@ -46,6 +38,11 @@ export default function GameHUD({
         </div>
       )}
 
+      <div className="population-badge">
+        <span><b>{city.trafficVehicles}</b> TRAFFIC</span>
+        <span><b>{city.pedestrianCount}</b> NPCs</span>
+      </div>
+
       <div className="game-bottom">
         <div className="telemetry">
           <div className="telemetry-main">
@@ -56,34 +53,20 @@ export default function GameHUD({
 
           {driving ? (
             <>
-              <div>
-                <span>GEAR</span>
-                <strong>{vehicleInfo?.gear ?? "P"}</strong>
-              </div>
-              <div>
-                <span>MODE</span>
-                <strong>{vehicleInfo?.handbrake ? "BRAKE" : "DRIVE"}</strong>
-              </div>
+              <div><span>GEAR</span><strong>{vehicleInfo?.gear ?? "P"}</strong></div>
+              <div><span>MODE</span><strong>{vehicleInfo?.handbrake ? "BRAKE" : "DRIVE"}</strong></div>
             </>
           ) : (
             <>
-              <div>
-                <span>STATE</span>
-                <strong>{info?.sprinting ? "SPRINT" : "RUN"}</strong>
-              </div>
-              <div>
-                <span>GROUND</span>
-                <strong>{info?.grounded ? "YES" : "AIR"}</strong>
-              </div>
+              <div><span>STATE</span><strong>{info?.sprinting ? "SPRINT" : "RUN"}</strong></div>
+              <div><span>GROUND</span><strong>{info?.grounded ? "YES" : "AIR"}</strong></div>
             </>
           )}
         </div>
 
         <div className="key-panel">
           {["w", "a", "s", "d"].map((key) => (
-            <div key={key} className={input[key] ? "key active" : "key"}>
-              {key.toUpperCase()}
-            </div>
+            <div key={key} className={input[key] ? "key active" : "key"}>{key.toUpperCase()}</div>
           ))}
           <span className="key-caption">{driving ? "DRIVE" : "MOVE"}</span>
         </div>
@@ -118,24 +101,14 @@ export default function GameHUD({
         </div>
       )}
 
-      {driving && !locked && (
-        <div className="vehicle-prompt">
-          <span className="prompt-key">MOUSE</span>
-          <div>
-            <strong>TAKE CAMERA CONTROL</strong>
-            <small>Click once to look around the vehicle.</small>
-          </div>
-        </div>
-      )}
-
       {!locked && (
         <div className="control-overlay">
           <div className="control-card">
             <span className="overlay-kicker">CITY RUSH • {city.name.toUpperCase()}</span>
-            <h2>{driving ? "TAKE CONTROL" : "TAKE CONTROL"}</h2>
+            <h2>TAKE CONTROL</h2>
             <p>
-              Explore Chandigarh on foot, then enter the Civic Cruiser and drive
-              the boulevard network with arcade-style handling.
+              Chandigarh is now alive with moving traffic and pedestrians.
+              Walk the streets, enter the Civic Cruiser, and drive through the sector grid.
             </p>
             <button className="primary overlay-button" onClick={onTakeControl}>
               CLICK TO PLAY <b>→</b>
@@ -145,9 +118,7 @@ export default function GameHUD({
         </div>
       )}
 
-      <div className="crosshair" aria-hidden="true">
-        <span /><span /><span /><span />
-      </div>
+      <div className="crosshair" aria-hidden="true"><span /><span /><span /><span /></div>
     </div>
   );
 }
