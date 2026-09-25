@@ -197,3 +197,37 @@ footer{padding-top:20px}
   .vehicle-prompt{bottom:208px}
   .vehicle-prompt small{font-size:7px}
 }
+
+/* Phase 5 living-city HUD */
+.population-badge{
+  position:absolute;
+  right:22px;
+  top:76px;
+  display:flex;
+  gap:1px;
+  padding:0;
+  border:1px solid #2e3b4d;
+  background:rgba(7,16,34,.76);
+  backdrop-filter:blur(8px);
+}
+.population-badge span{
+  padding:10px 12px;
+  font-size:8px;
+  letter-spacing:1.3px;
+  color:#8190a7;
+}
+.population-badge span + span{
+  border-left:1px solid #2e3b4d;
+}
+.population-badge b{
+  color:#e5e9f1;
+  font-size:11px;
+  margin-right:4px;
+}
+@media(max-width:800px){
+  .population-badge{right:12px;top:62px}
+}
+@media(max-width:520px){
+  .population-badge{top:102px;right:12px}
+  .population-badge span{padding:8px 9px;font-size:7px}
+}
