@@ -92,7 +92,7 @@ const civicComplex = {
 export const CITY = {
   name: "Chandigarh",
   subtitle: "Sector Grid",
-  version: "0.5.0",
+  version: "0.6.0",
   worldBounds: WORLD_BOUNDS,
   roadWidth: ROAD_WIDTH,
   roadCenters: ROAD_CENTERS,

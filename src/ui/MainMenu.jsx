@@ -13,16 +13,16 @@ export default function MainMenu({ onEnter, onControls }) {
       </nav>
 
       <section className="hero">
-        <p className="eyebrow">PHASE 5 • TRAFFIC + NPC WORLD</p>
+        <p className="eyebrow">PHASE 6 • MISSION SYSTEM</p>
         <h1>
           YOUR CITY.<br />
           <em>YOUR RIDE.</em><br />
           YOUR RUN.
         </h1>
         <p className="lead">
-          Chandigarh is no longer empty. Traffic moves through the boulevards,
-          pedestrians walk the sidewalks and parks, and your Civic Cruiser can
-          cut through a living first city slice.
+          Chandigarh is now a proper playground. Traffic moves, pedestrians walk,
+          and three timed driving missions turn the first city slice into a real challenge.
+          Hit every glowing checkpoint and finish the route before the clock reaches zero.
         </p>
 
         <div className="actions">
@@ -31,16 +31,16 @@ export default function MainMenu({ onEnter, onControls }) {
         </div>
 
         <div className="stats">
-          <div><strong>14</strong><span>TRAFFIC VEHICLES</span></div>
-          <div><strong>12</strong><span>PEDESTRIAN NPCs</span></div>
-          <div><strong>5</strong><span>ROAD AXES</span></div>
-          <div><strong>P5</strong><span>LIVING CITY</span></div>
+          <div><strong>03</strong><span>DRIVING MISSIONS</span></div>
+          <div><strong>14</strong><span>CHECKPOINTS</span></div>
+          <div><strong>110s</strong><span>LONGEST TIMER</span></div>
+          <div><strong>P6</strong><span>MISSION SYSTEM</span></div>
         </div>
       </section>
 
       <footer>
         <span>CHANDIGARH • REWARI • GURUGRAM • DELHI</span>
-        <span>v0.5 PHASE 5</span>
+        <span>v0.6 PHASE 6</span>
       </footer>
     </main>
   );
