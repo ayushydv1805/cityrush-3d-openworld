@@ -25,6 +25,8 @@ function Scene({
   onEnterVehicle,
   onExitVehicle,
   mission,
+  onMissionUpdate,
+  onMissionFinish,
 }) {
   return (
     <>
@@ -268,6 +270,8 @@ export default function App() {
             onEnterVehicle={enterVehicle}
             onExitVehicle={exitVehicle}
             mission={mission}
+            onMissionUpdate={onMissionUpdate}
+            onMissionFinish={onMissionFinish}
           />
         </Canvas>
 
