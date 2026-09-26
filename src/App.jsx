@@ -165,6 +165,16 @@ export default function App() {
     setControlsOpen(false);
     setStarted(true);
     setDriving(false);
+    setMission({
+      id: null,
+      status: "idle",
+      checkpoint: 0,
+      total: 0,
+      timeLeft: 0,
+      reward: 0,
+      title: "",
+      message: "Choose a mission from the Mission Board.",
+    });
     yawRef.current = 0;
     pitchRef.current = -0.16;
   }, []);
@@ -184,6 +194,16 @@ export default function App() {
     document.exitPointerLock?.();
     setLocked(false);
     setDriving(false);
+    setMission({
+      id: null,
+      status: "idle",
+      checkpoint: 0,
+      total: 0,
+      timeLeft: 0,
+      reward: 0,
+      title: "",
+      message: "Choose a mission from the Mission Board.",
+    });
     setStarted(false);
   }, []);
 
