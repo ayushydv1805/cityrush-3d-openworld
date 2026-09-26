@@ -5,11 +5,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import ChandigarhWorld from "./game/world/ChandigarhWorld";
 import TrafficWorld from "./game/world/TrafficWorld";
 import { CITY } from "./game/city/chandigarh";
+import { MISSION_LIST, getMission } from "./game/missions/missionData";
 import PlayerController from "./game/player/PlayerController";
 import VehicleController from "./game/vehicles/VehicleController";
 import ThirdPersonCamera from "./game/camera/ThirdPersonCamera";
 import GameHUD from "./ui/GameHUD";
 import MainMenu from "./ui/MainMenu";
+import MissionSystem from "./game/missions/MissionSystem";
 
 function Scene({
   playerRef,
@@ -22,6 +24,7 @@ function Scene({
   onVehicleUpdate,
   onEnterVehicle,
   onExitVehicle,
+  mission,
 }) {
   return (
     <>
@@ -51,6 +54,15 @@ function Scene({
 
       <ChandigarhWorld />
       <TrafficWorld />
+
+      <MissionSystem
+        missionId={mission.id}
+        active={mission.status === "active"}
+        vehicleRef={vehicleRef}
+        driving={driving}
+        onUpdate={onMissionUpdate}
+        onFinish={onMissionFinish}
+      />
 
       <PlayerController
         city={CITY}
@@ -105,6 +117,17 @@ export default function App() {
     nearVehicle: true,
     handbrake: false,
     input: { w: false, a: false, s: false, d: false },
+  });
+
+  const [mission, setMission] = useState({
+    id: null,
+    status: "idle",
+    checkpoint: 0,
+    total: 0,
+    timeLeft: 0,
+    reward: 0,
+    title: "",
+    message: "Choose a mission from the Mission Board.",
   });
 
   const playerRef = useRef(null);
@@ -170,6 +193,53 @@ export default function App() {
     setVehicleInfo(next);
   }, []);
 
+
+  const startMission = useCallback((id) => {
+    const selected = getMission(id);
+    if (!selected) return;
+    if (!driving && !vehicleInfo.nearVehicle) return;
+
+    setControlsOpen(false);
+    setMission({
+      id: selected.id,
+      status: "active",
+      checkpoint: 0,
+      total: selected.checkpoints.length,
+      timeLeft: selected.duration,
+      reward: selected.reward,
+      title: selected.name,
+      message: "Drive to the first checkpoint.",
+    });
+
+    const vehicle = vehicleRef.current;
+    if (vehicle && !driving) {
+      yawRef.current = vehicle.rotation.y;
+      pitchRef.current = -0.14;
+      setDriving(true);
+    }
+  }, [driving, vehicleInfo.nearVehicle]);
+
+  const abortMission = useCallback(() => {
+    setMission({
+      id: null,
+      status: "idle",
+      checkpoint: 0,
+      total: 0,
+      timeLeft: 0,
+      reward: 0,
+      title: "",
+      message: "Choose a mission from the Mission Board.",
+    });
+  }, []);
+
+  const onMissionUpdate = useCallback((next) => {
+    setMission((previous) => ({ ...previous, ...next }));
+  }, []);
+
+  const onMissionFinish = useCallback((result) => {
+    setMission((previous) => ({ ...previous, ...result }));
+  }, []);
+
   if (started) {
     return (
       <div
@@ -197,6 +267,7 @@ export default function App() {
             onVehicleUpdate={handleVehicleUpdate}
             onEnterVehicle={enterVehicle}
             onExitVehicle={exitVehicle}
+            mission={mission}
           />
         </Canvas>
 
@@ -208,6 +279,11 @@ export default function App() {
           locked={locked}
           onTakeControl={takeControl}
           onExit={exitCity}
+          missions={MISSION_LIST}
+          mission={mission}
+          canStartMission={driving || vehicleInfo.nearVehicle}
+          onStartMission={startMission}
+          onAbortMission={abortMission}
         />
       </div>
     );
@@ -231,7 +307,7 @@ export default function App() {
           >
             <div className="settings-head">
               <div>
-                <span className="eyebrow">PHASE 5</span>
+                <span className="eyebrow">PHASE 6</span>
                 <h2>CONTROLS</h2>
               </div>
               <button
