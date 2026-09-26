@@ -14,20 +14,21 @@ app.use(express.json());
 app.get("/", (_, res) => res.json({
   name: "CityRush 3D Server",
   status: "online",
-  version: "0.5.0",
-  phase: 5,
+  version: "0.6.0",
+  phase: 6,
   city: "Chandigarh",
-  systems: ["city", "player", "vehicle", "traffic", "pedestrians"],
+  systems: ["city", "player", "vehicle", "traffic", "pedestrians", "missions"],
 }));
 
 app.get("/health", (_, res) => res.json({
   ok: true,
-  phase: 4,
-  version: "0.4.0",
+  phase: 6,
+  version: "0.6.0",
   city: "Chandigarh",
   vehicleSystem: "online",
   trafficSystem: "online",
   pedestrianSystem: "online",
+  missionSystem: "online",
   timestamp: new Date().toISOString(),
 }));
 
@@ -45,6 +46,7 @@ io.on("connection", (socket) => {
     phase: 5,
     city: "Chandigarh",
     vehicleSystem: "online",
+    missionSystem: "online",
   });
 });
 
