@@ -219,7 +219,7 @@ export default function VehicleController({
         const group = groupRef.current;
         if (!group) return;
 
-        if (driving) {
+        if (driving && locked) {
           const yaw = group.rotation.y;
           const rightX = Math.cos(yaw);
           const rightZ = Math.sin(yaw);
