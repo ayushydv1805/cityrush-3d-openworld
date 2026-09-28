@@ -134,15 +134,6 @@ export default function App() {
   const missionRunRef = useRef(0);
   const rewardedRunsRef = useRef(new Set());
 
-  /*
-    checkpoint: 0,
-    total: 0,
-    timeLeft: 0,
-    reward: 0,
-    title: "",
-    message: "Choose a mission from the Mission Board.",
-  }); */
-
   const playerRef = useRef(null);
   const vehicleRef = useRef(null);
   const yawRef = useRef(0);
