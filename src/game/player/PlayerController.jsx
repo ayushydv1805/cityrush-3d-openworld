@@ -157,7 +157,7 @@ export default function PlayerController({
   useEffect(() => {
     const down = (event) => {
       const key = normalizeKey(event);
-      if (!key || !enabled) return;
+      if (!key || !enabled || !locked) return;
       keysRef.current.add(key);
       if (key === "space") jumpQueuedRef.current = true;
       if (["w", "a", "s", "d", "shift", "space"].includes(key)) event.preventDefault();
@@ -178,7 +178,7 @@ export default function PlayerController({
       window.removeEventListener("keyup", up, true);
       window.removeEventListener("blur", clear);
     };
-  }, [enabled]);
+  }, [enabled, locked]);
 
   useEffect(() => {
     if (!enabled) {
@@ -211,7 +211,10 @@ export default function PlayerController({
 
   useFrame((state, delta) => {
     const group = groupRef.current;
-    if (!group || !enabled) return;
+    if (!group || !enabled || !locked) {
+      if (!locked) velocityRef.current.set(0, 0, 0);
+      return;
+    }
 
     const dt = Math.min(delta, 0.04);
     const keys = keysRef.current;

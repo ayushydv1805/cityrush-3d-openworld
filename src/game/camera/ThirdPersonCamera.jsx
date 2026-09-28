@@ -1,17 +1,33 @@
+import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { useRef } from "react";
 import * as THREE from "three";
 
 export default function ThirdPersonCamera({
   playerRef,
   vehicleRef,
   driving,
+  locked,
   yawRef,
   pitchRef,
 }) {
   const { camera } = useThree();
   const target = useRef(new THREE.Vector3());
   const desired = useRef(new THREE.Vector3());
+
+  useEffect(() => {
+    const move = (event) => {
+      if (!locked || !driving) return;
+      yawRef.current -= event.movementX * 0.0027;
+      pitchRef.current = THREE.MathUtils.clamp(
+        pitchRef.current - event.movementY * 0.002,
+        -0.62,
+        0.3,
+      );
+    };
+
+    window.addEventListener("mousemove", move);
+    return () => window.removeEventListener("mousemove", move);
+  }, [driving, locked, pitchRef, yawRef]);
 
   useFrame((_, delta) => {
     const focus = driving ? vehicleRef.current : playerRef.current;
@@ -40,7 +56,12 @@ export default function ThirdPersonCamera({
 
     const targetFov = driving ? 62 : 56;
     if (Math.abs(camera.fov - targetFov) > 0.05) {
-      camera.fov = THREE.MathUtils.damp(camera.fov, targetFov, 7, Math.min(delta, 0.04));
+      camera.fov = THREE.MathUtils.damp(
+        camera.fov,
+        targetFov,
+        7,
+        Math.min(delta, 0.04),
+      );
       camera.updateProjectionMatrix();
     }
 

@@ -210,7 +210,7 @@ export default function VehicleController({
 
     const down = (event) => {
       const key = normalize(event);
-      if (!key) return;
+      if (!key || !locked) return;
 
       if (key === "e") {
         if (event.repeat || eventLockRef.current) return;
@@ -219,7 +219,7 @@ export default function VehicleController({
         const group = groupRef.current;
         if (!group) return;
 
-        if (driving) {
+        if (driving && locked) {
           const yaw = group.rotation.y;
           const rightX = Math.cos(yaw);
           const rightZ = Math.sin(yaw);
@@ -273,7 +273,7 @@ export default function VehicleController({
       window.removeEventListener("keyup", up, true);
       window.removeEventListener("blur", clear);
     };
-  }, [city, driving, onEnter, onExit, pitchRef, playerRef, yawRef]);
+  }, [city, driving, locked, onEnter, onExit, pitchRef, playerRef, yawRef]);
 
   useFrame((state, delta) => {
     const group = groupRef.current;
@@ -289,7 +289,7 @@ export default function VehicleController({
 
     let speed = speedRef.current;
 
-    if (driving) {
+    if (driving && locked) {
       const keys = keysRef.current;
       const throttle = (keys.has("w") ? 1 : 0) - (keys.has("s") ? 1 : 0);
       const steering = (keys.has("d") ? 1 : 0) - (keys.has("a") ? 1 : 0);
