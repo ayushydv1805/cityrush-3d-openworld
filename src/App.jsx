@@ -6,12 +6,16 @@ import ChandigarhWorld from "./game/world/ChandigarhWorld";
 import TrafficWorld from "./game/world/TrafficWorld";
 import { CITY } from "./game/city/chandigarh";
 import { MISSION_LIST, getMission } from "./game/missions/missionData";
+import { addMissionReward, formatRupees } from "./game/economy/economyData";
+import useEconomy from "./game/economy/useEconomy";
 import PlayerController from "./game/player/PlayerController";
 import VehicleController from "./game/vehicles/VehicleController";
 import ThirdPersonCamera from "./game/camera/ThirdPersonCamera";
 import GameHUD from "./ui/GameHUD";
 import MainMenu from "./ui/MainMenu";
 import MissionSystem from "./game/missions/MissionSystem";
+
+const idleMission = () => ({ id: null, runId: 0, status: "idle", checkpoint: 0, total: 0, timeLeft: 0, reward: 0, payoutCredited: 0, title: "", message: "Choose a mission from the Mission Board." });
 
 function Scene({
   playerRef,
@@ -59,6 +63,7 @@ function Scene({
 
       <MissionSystem
         missionId={mission.id}
+        runId={mission.runId}
         active={mission.status === "active"}
         vehicleRef={vehicleRef}
         driving={driving}
@@ -83,6 +88,7 @@ function Scene({
         yawRef={yawRef}
         pitchRef={pitchRef}
         driving={driving}
+        locked={locked}
         onEnter={onEnterVehicle}
         onExit={onExitVehicle}
         onUpdate={onVehicleUpdate}
@@ -105,6 +111,8 @@ export default function App() {
   const [locked, setLocked] = useState(false);
   const [driving, setDriving] = useState(false);
   const [controlsOpen, setControlsOpen] = useState(false);
+  const [economy, setEconomy] = useEconomy();
+  const [economyNotice, setEconomyNotice] = useState(null);
 
   const [info, setInfo] = useState({
     speed: 0,
@@ -122,21 +130,29 @@ export default function App() {
     input: { w: false, a: false, s: false, d: false },
   });
 
-  const [mission, setMission] = useState({
-    id: null,
-    status: "idle",
+  const [mission, setMission] = useState(idleMission);
+  const missionRunRef = useRef(0);
+  const rewardedRunsRef = useRef(new Set());
+
+  /*
     checkpoint: 0,
     total: 0,
     timeLeft: 0,
     reward: 0,
     title: "",
     message: "Choose a mission from the Mission Board.",
-  });
+  }); */
 
   const playerRef = useRef(null);
   const vehicleRef = useRef(null);
   const yawRef = useRef(0);
   const pitchRef = useRef(-0.16);
+
+  useEffect(() => {
+    if (!economyNotice) return undefined;
+    const id = window.setTimeout(() => setEconomyNotice(null), 4200);
+    return () => window.clearTimeout(id);
+  }, [economyNotice]);
 
   useEffect(() => {
     const onPointerLock = () => {
@@ -166,16 +182,8 @@ export default function App() {
     setControlsOpen(false);
     setStarted(true);
     setDriving(false);
-    setMission({
-      id: null,
-      status: "idle",
-      checkpoint: 0,
-      total: 0,
-      timeLeft: 0,
-      reward: 0,
-      title: "",
-      message: "Choose a mission from the Mission Board.",
-    });
+    setMission(idleMission());
+    missionRunRef.current += 1;
     yawRef.current = 0;
     pitchRef.current = -0.16;
   }, []);
@@ -195,16 +203,7 @@ export default function App() {
     document.exitPointerLock?.();
     setLocked(false);
     setDriving(false);
-    setMission({
-      id: null,
-      status: "idle",
-      checkpoint: 0,
-      total: 0,
-      timeLeft: 0,
-      reward: 0,
-      title: "",
-      message: "Choose a mission from the Mission Board.",
-    });
+    setMission(idleMission());
     setStarted(false);
   }, []);
 
@@ -219,49 +218,63 @@ export default function App() {
 
   const startMission = useCallback((id) => {
     const selected = getMission(id);
-    if (!selected) return;
+    if (!selected || !locked) return;
     if (!driving && !vehicleInfo.nearVehicle) return;
+
+    const vehicle = vehicleRef.current;
+    const runId = missionRunRef.current + 1;
+    missionRunRef.current = runId;
 
     setControlsOpen(false);
     setMission({
       id: selected.id,
+      runId,
       status: "active",
       checkpoint: 0,
       total: selected.checkpoints.length,
       timeLeft: selected.duration,
       reward: selected.reward,
+      payoutCredited: 0,
       title: selected.name,
       message: "Drive to the first checkpoint.",
     });
 
-    const vehicle = vehicleRef.current;
     if (vehicle && !driving) {
       yawRef.current = vehicle.rotation.y;
       pitchRef.current = -0.14;
       setDriving(true);
     }
-  }, [driving, vehicleInfo.nearVehicle]);
+  }, [driving, locked, vehicleInfo.nearVehicle]);
 
-  const abortMission = useCallback(() => {
-    setMission({
-      id: null,
-      status: "idle",
-      checkpoint: 0,
-      total: 0,
-      timeLeft: 0,
-      reward: 0,
-      title: "",
-      message: "Choose a mission from the Mission Board.",
-    });
-  }, []);
+  const abortMission = useCallback(() => setMission(idleMission()), []);
 
   const onMissionUpdate = useCallback((next) => {
     setMission((previous) => ({ ...previous, ...next }));
   }, []);
 
   const onMissionFinish = useCallback((result) => {
-    setMission((previous) => ({ ...previous, ...result }));
-  }, []);
+    const shouldReward =
+      result.status === "success" &&
+      mission.status === "active" &&
+      result.runId === mission.runId &&
+      !rewardedRunsRef.current.has(result.runId);
+
+    if (shouldReward) {
+      rewardedRunsRef.current.add(result.runId);
+      setEconomy((previous) => addMissionReward(previous, result.reward));
+      setEconomyNotice({
+        amount: result.reward,
+        title: result.title,
+        message: "Mission payout credited to your wallet.",
+      });
+    }
+
+    setMission((previous) => ({
+      ...previous,
+      ...result,
+      payoutCredited: shouldReward ? result.reward : previous.payoutCredited,
+    }));
+  }, [mission.runId, mission.status, setEconomy]);
 
   if (started) {
     return (
@@ -298,6 +311,8 @@ export default function App() {
 
         <GameHUD
           city={CITY}
+          economy={economy}
+          economyNotice={economyNotice}
           info={info}
           vehicleInfo={vehicleInfo}
           driving={driving}
@@ -306,7 +321,7 @@ export default function App() {
           onExit={exitCity}
           missions={MISSION_LIST}
           mission={mission}
-          canStartMission={driving || vehicleInfo.nearVehicle}
+          canStartMission={locked && (driving || vehicleInfo.nearVehicle)}
           onStartMission={startMission}
           onAbortMission={abortMission}
         />
@@ -318,6 +333,7 @@ export default function App() {
     <>
       <MainMenu
         onEnter={enterCity}
+        economy={economy}
         onControls={() => setControlsOpen(true)}
       />
 
@@ -332,7 +348,7 @@ export default function App() {
           >
             <div className="settings-head">
               <div>
-                <span className="eyebrow">PHASE 6</span>
+                <span className="eyebrow">PHASE 7</span>
                 <h2>CONTROLS</h2>
               </div>
               <button
@@ -350,6 +366,12 @@ export default function App() {
               <div><b>E</b><span>Enter / exit vehicle</span></div>
               <div><b>MOUSE</b><span>Rotate camera</span></div>
               <div><b>ESC</b><span>Release mouse control</span></div>
+            </div>
+
+            <div className="settings-economy">
+              <div><span>WALLET</span><strong>₹{formatRupees(economy.cash)}</strong></div>
+              <div><span>TOTAL EARNED</span><strong>₹{formatRupees(economy.totalEarned)}</strong></div>
+              <div><span>MISSIONS PAID</span><strong>{economy.missionsCompleted}</strong></div>
             </div>
 
             <button className="primary settings-play" onClick={enterCity}>
