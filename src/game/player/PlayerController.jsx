@@ -211,7 +211,7 @@ export default function PlayerController({
 
   useFrame((state, delta) => {
     const group = groupRef.current;
-    if (!group || !enabled) return;
+    if (!group || !enabled || !locked) {\n      if (!locked) velocityRef.current.set(0, 0, 0);\n      return;\n    }
 
     const dt = Math.min(delta, 0.04);
     const keys = keysRef.current;
