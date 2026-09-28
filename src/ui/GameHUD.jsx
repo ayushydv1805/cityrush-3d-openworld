@@ -1,5 +1,8 @@
+import { formatRupees } from "../game/economy/economyData";
 export default function GameHUD({
   city,
+  economy,
+  economyNotice,
   info,
   vehicleInfo,
   driving,
@@ -34,8 +37,8 @@ export default function GameHUD({
         </div>
 
         <div className="game-phase">
-          PHASE 6
-          <span>MISSION SYSTEM</span>
+          PHASE 7
+          <span>MONEY + ECONOMY</span>
         </div>
 
         <button className="game-exit" onClick={onExit}>
@@ -60,6 +63,12 @@ export default function GameHUD({
       <div className="population-badge">
         <span><b>{city.trafficVehicles}</b> TRAFFIC</span>
         <span><b>{city.pedestrianCount}</b> NPCs</span>
+      </div>
+
+      <div className="economy-badge">
+        <span className="city-kicker">PLAYER WALLET</span>
+        <strong>₹{formatRupees(economy?.cash ?? 0)}</strong>
+        <small>{economy?.missionsCompleted ?? 0} PAID RUNS • ₹{formatRupees(economy?.totalEarned ?? 0)} EARNED</small>
       </div>
 
       <section className="mission-panel" aria-label="Mission board">
@@ -131,6 +140,9 @@ export default function GameHUD({
             <span>{mission.status === "success" ? "ROUTE CLEARED" : "RUN FAILED"}</span>
             <strong>{mission.status === "success" ? "MISSION COMPLETE" : "TIME EXPIRED"}</strong>
             <p>{mission.message}</p>
+            {mission.status === "success" && mission.payoutCredited > 0 && (
+              <div className="mission-credit">+₹{formatRupees(mission.payoutCredited)} CREDITED</div>
+            )}
             <div className="mission-result-actions">
               {mission.status === "failed" && (
                 <button className="primary" onClick={() => onStartMission?.(mission.id)}>RETRY</button>
@@ -203,6 +215,14 @@ export default function GameHUD({
         <div className="mission-hint">
           <b>MISSION BOARD</b>
           <span>Choose a route from the panel at top-right.</span>
+        </div>
+      )}
+
+      {economyNotice && (
+        <div className="economy-toast" role="status">
+          <span>MISSION PAYOUT</span>
+          <strong>+₹{formatRupees(economyNotice.amount)}</strong>
+          <small>{economyNotice.title} • {economyNotice.message}</small>
         </div>
       )}
 
