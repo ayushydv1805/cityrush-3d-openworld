@@ -178,7 +178,7 @@ export default function PlayerController({
       window.removeEventListener("keyup", up, true);
       window.removeEventListener("blur", clear);
     };
-  }, [enabled]);
+  }, [enabled, locked]);
 
   useEffect(() => {
     if (!enabled) {
