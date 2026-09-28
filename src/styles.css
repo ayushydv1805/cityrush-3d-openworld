@@ -237,7 +237,7 @@ footer{padding-top:20px}
 .mission-panel{
   position:absolute;
   right:22px;
-  top:126px;
+  top:214px;
   width:min(360px,calc(100vw - 44px));
   max-height:calc(100vh - 300px);
   overflow:auto;
@@ -477,14 +477,14 @@ footer{padding-top:20px}
 @media(max-width:800px){
   .mission-panel{
     right:12px;
-    top:122px;
+    top:180px;
     width:min(340px,calc(100vw - 24px));
   }
   .mission-hint{right:12px;bottom:180px}
 }
 @media(max-width:520px){
   .mission-panel{
-    top:142px;
+    top:182px;
     width:calc(100vw - 24px);
     max-height:42vh;
   }
