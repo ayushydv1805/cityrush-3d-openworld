@@ -232,7 +232,7 @@ export default function GameHUD({
             <span className="overlay-kicker">CITY RUSH • {city.name.toUpperCase()}</span>
             <h2>TAKE CONTROL</h2>
             <p>
-              The city is alive, and Phase 6 adds the first real mission routes.
+              The city is alive, and Phase 7 now pays you for clearing those driving routes.
               Drive the Civic Cruiser through glowing checkpoints before time runs out.
             </p>
             <button className="primary overlay-button" onClick={onTakeControl}>
