@@ -210,7 +210,7 @@ export default function VehicleController({
 
     const down = (event) => {
       const key = normalize(event);
-      if (!key) return;
+      if (!key || !locked) return;
 
       if (key === "e") {
         if (event.repeat || eventLockRef.current) return;
