@@ -2,55 +2,35 @@
 
 **Your City. Your Ride. Your Run.**
 
-## Phase 6 — Mission System
+## Phase 7 — Money + Economy
 
-Phase 6 turns the living Chandigarh slice into a playable mission loop. The city still has moving traffic and pedestrians, and now the player can launch timed driving missions with sequential 3D checkpoints, live objectives, failure states and mission completion.
+Phase 7 makes successful driving missions pay real in-game cash. The wallet, total earnings, paid mission count and best payout persist in browser local storage and appear on the menu and in-game HUD.
 
 ### Included
-- Chandigarh sector-style road grid
-- 16 playable sectors in the first city slice
-- 36-sector expansion plan
-- Wide boulevard network
-- Road lane markings and crosswalks
-- Multiple roundabouts
-- Green public parks with walking paths and benches
-- Procedural city buildings with windows and balconies
-- Capitol/Civic district landmark
-- Sukhna Lake-inspired waterfront landmark
-- City entrance signage
-- Street lighting
-- Larger explorable world
-- Player collision against city structures
-- Camera-relative W/A/S/D movement
-- Shift sprint and Space jump
-- Third-person mouse camera
-- Detailed human-styled player model
-- Drivable Civic Cruiser
-- Enter / exit vehicle flow with E
-- Arcade acceleration, braking and reverse
-- Steering, wheel rotation and body lean
-- Vehicle collision against city structures
-- Vehicle-focused third-person camera
-- Driving telemetry and gear HUD
-- 14 moving traffic vehicles using lane-aware boulevard routes
-- Sedans, hatchbacks and auto-rickshaws in the traffic mix
-- 12 pedestrian NPCs with walking routes across sidewalks and parks
-- Animated pedestrian arms and legs
-- Crosswalk markings at active intersections
-- Living-city HUD with traffic and NPC counts
-- 3 driving missions in Chandigarh
-- 14 sequential mission checkpoints
-- Mission Board UI with 3 route choices
-- Timed mission countdowns with live checkpoint progress
-- Glowing 3D checkpoint beacons in the world
-- Mission success and timeout failure states
-- Retry and mission-abort flow
-- Mission reward previews for the upcoming economy phase
+- Living Chandigarh sector-style city
+- 16 playable sectors with 36-sector expansion plan
+- Player movement, sprint, jump and third-person camera
+- Drivable Civic Cruiser with steering, collision and driving HUD
+- 14 moving traffic vehicles and 12 pedestrian NPCs
+- 3 timed driving missions with 14 sequential checkpoints
+- Live mission timer and progress
+- Mission success, timeout, retry and abort states
+- ₹1,500 starting cash
+- Mission payouts: ₹500, ₹800 and ₹1,200
+- Persistent wallet using browser local storage
+- Total earned, paid mission count and best payout tracking
+- Mission payout toast and completion credit UI
+- Economy stats on the main menu and controls panel
+- Backend /economy metadata route
+- Phase 7 economy server status
 
-### Phase 6 Missions
-- **First Run:** 4 checkpoints, 90 seconds, ₹500 reward preview
-- **Sector Courier:** 4 checkpoints, 85 seconds, ₹800 reward preview
-- **Roundabout Run:** 6 checkpoints, 110 seconds, ₹1200 reward preview
+### Phase 7 Missions & Payouts
+- First Run: 4 checkpoints, 90 seconds → ₹500
+- Sector Courier: 4 checkpoints, 85 seconds → ₹800
+- Roundabout Run: 6 checkpoints, 110 seconds → ₹1,200
+
+### Economy Rules
+Cash is earned only when a mission reaches the success state. Failed or aborted missions give no payout. Phase 8 will use this wallet for the garage and vehicle upgrades.
 
 ### Controls
 - W: accelerate / move forward
@@ -60,7 +40,7 @@ Phase 6 turns the living Chandigarh slice into a playable mission loop. The city
 - Space: jump / vehicle handbrake
 - E: enter / exit vehicle
 - Mouse: camera
-- Click the Mission Board cards to start missions
+- Mission Board: click START on a mission card
 
 ### Stack
 React + Vite, Three.js, React Three Fiber, React Three Drei, Node.js, Express and Socket.IO.
@@ -69,4 +49,4 @@ React + Vite, Three.js, React Three Fiber, React Three Drei, Node.js, Express an
 Chandigarh, Rewari, Gurugram, Delhi.
 
 ### Roadmap
-Foundation → Player/Camera → First City → Vehicles → Traffic/NPCs → **Missions** → Economy → Garage → Reputation → Police/Heat → Day/Night → Weather → Hidden Locations → Collectibles → Story → Social → Advanced Missions → Dynamic Events → Advanced Driving → Multiplayer → Profiles/Leaderboards → Audio → Graphics/UI polish → Save → Optimization → Testing → Production.
+Foundation → Player/Camera → First City → Vehicles → Traffic/NPCs → Missions → Money/Economy → Garage → Reputation → Police/Heat → Day/Night → Weather → Hidden Locations → Collectibles → Story → Social → Advanced Missions → Dynamic Events → Advanced Driving → Multiplayer → Profiles/Leaderboards → Audio → Graphics/UI polish → Save → Optimization → Testing → Production.

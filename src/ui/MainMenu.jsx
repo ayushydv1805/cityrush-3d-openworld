@@ -1,4 +1,11 @@
-export default function MainMenu({ onEnter, onControls }) {
+import { formatRupees } from "../game/economy/economyData";
+
+export default function MainMenu({ onEnter, onControls, economy }) {
+  const cash = economy?.cash ?? 1500;
+  const earned = economy?.totalEarned ?? 0;
+  const paidRuns = economy?.missionsCompleted ?? 0;
+  const bestPayout = economy?.bestPayout ?? 0;
+
   return (
     <main className="menu">
       <div className="glow glowA" />
@@ -15,11 +22,11 @@ export default function MainMenu({ onEnter, onControls }) {
 
       <section className="hero">
         <div className="hero-copy">
-          <p className="eyebrow">PHASE 6 • MISSION SYSTEM</p>
+          <p className="eyebrow">PHASE 7 • MONEY + ECONOMY</p>
           <h1>YOUR CITY.<br /><em>YOUR RIDE.</em><br />YOUR RUN.</h1>
           <p className="lead">
-            Chandigarh is now a living driving playground. Traffic moves, pedestrians walk,
-            and three timed missions turn the sector grid into a real route challenge.
+            Earn cash by clearing driving missions. Your wallet now persists in the browser,
+            so every successful run builds your CITY RUSH bankroll for the garage and upgrades ahead.
           </p>
 
           <div className="actions">
@@ -30,17 +37,17 @@ export default function MainMenu({ onEnter, onControls }) {
           </div>
 
           <div className="stats">
-            <div><strong>03</strong><span>DRIVING MISSIONS</span></div>
-            <div><strong>14</strong><span>CHECKPOINTS</span></div>
-            <div><strong>110s</strong><span>LONGEST TIMER</span></div>
-            <div><strong>P6</strong><span>MISSION SYSTEM</span></div>
+            <div><strong>₹{formatRupees(cash)}</strong><span>WALLET</span></div>
+            <div><strong>₹{formatRupees(earned)}</strong><span>TOTAL EARNED</span></div>
+            <div><strong>{paidRuns}</strong><span>PAID RUNS</span></div>
+            <div><strong>P7</strong><span>ECONOMY LIVE</span></div>
           </div>
         </div>
 
         <aside className="mission-preview">
           <div className="preview-top">
             <span>CHANDIGARH // 01</span>
-            <span className="live-dot"><i /> LIVE WORLD</span>
+            <span className="live-dot"><i /> ECONOMY LIVE</span>
           </div>
 
           <div className="preview-map">
@@ -49,26 +56,26 @@ export default function MainMenu({ onEnter, onControls }) {
             <span className="node n1" /><span className="node n2" /><span className="node n3" />
             <span className="node n4" /><span className="node n5" />
             <span className="route-line" />
-            <div className="route-car">CR</div>
+            <div className="route-car">₹</div>
           </div>
 
           <div className="preview-title">
-            <span>MISSION BOARD</span>
-            <strong>FIRST RUN</strong>
-            <small>Central boulevard loop • 90 sec</small>
+            <span>PLAYER ECONOMY</span>
+            <strong>BUILD YOUR BANKROLL</strong>
+            <small>Finish routes → get paid → prepare for the garage.</small>
           </div>
 
           <div className="preview-metrics">
-            <div><b>14</b><span>TRAFFIC</span></div>
-            <div><b>12</b><span>PEDESTRIANS</span></div>
-            <div><b>₹500</b><span>REWARD PREVIEW</span></div>
+            <div><b>₹500</b><span>MIN PAYOUT</span></div>
+            <div><b>₹1,200</b><span>MAX PAYOUT</span></div>
+            <div><b>{bestPayout ? "₹" + formatRupees(bestPayout) : "—"}</b><span>BEST PAYOUT</span></div>
           </div>
         </aside>
       </section>
 
       <footer>
         <span>CHANDIGARH • REWARI • GURUGRAM • DELHI</span>
-        <span>v0.6.1 • POLISHED BUILD</span>
+        <span>v0.7.0 • MONEY + ECONOMY</span>
       </footer>
     </main>
   );

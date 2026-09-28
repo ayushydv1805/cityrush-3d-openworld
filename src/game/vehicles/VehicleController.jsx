@@ -164,6 +164,7 @@ export default function VehicleController({
   yawRef,
   pitchRef,
   driving,
+  locked,
   onEnter,
   onExit,
   onUpdate,

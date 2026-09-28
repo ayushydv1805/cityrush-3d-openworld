@@ -13,14 +13,17 @@ function CheckpointBeacon({ point, active }) {
       ringRef.current.rotation.z += 0.012;
     }
     if (beamRef.current) {
-      beamRef.current.scale.y = active ? 1 + Math.sin(state.clock.elapsedTime * 3.2) * 0.12 : 0.78;
+      beamRef.current.scale.y =
+        active ? 1 + Math.sin(state.clock.elapsedTime * 3.2) * 0.12 : 0.78;
     }
   });
 
   return (
     <group position={point.position}>
       <mesh ref={ringRef} rotation-x={Math.PI / 2} position-y={0.08}>
-        <torusGeometry args={[active ? 3.2 : 2.25, active ? 0.16 : 0.1, 10, 40]} />
+        <torusGeometry
+          args={[active ? 3.2 : 2.25, active ? 0.16 : 0.1, 10, 40]}
+        />
         <meshStandardMaterial
           color={active ? "#a5b4fc" : "#64748b"}
           emissive={active ? "#6366f1" : "#1e293b"}
@@ -33,7 +36,9 @@ function CheckpointBeacon({ point, active }) {
       </mesh>
 
       <mesh ref={beamRef} position-y={1.55}>
-        <cylinderGeometry args={[active ? 0.055 : 0.035, active ? 0.11 : 0.06, 3, 12]} />
+        <cylinderGeometry
+          args={[active ? 0.055 : 0.035, active ? 0.11 : 0.06, 3, 12]}
+        />
         <meshStandardMaterial
           color={active ? "#c7d2fe" : "#94a3b8"}
           emissive={active ? "#818cf8" : "#334155"}
@@ -44,7 +49,9 @@ function CheckpointBeacon({ point, active }) {
       </mesh>
 
       <mesh position-y={3.15} rotation-x={Math.PI}>
-        <coneGeometry args={[active ? 0.34 : 0.22, active ? 0.62 : 0.4, 4]} />
+        <coneGeometry
+          args={[active ? 0.34 : 0.22, active ? 0.62 : 0.4, 4]}
+        />
         <meshStandardMaterial
           color={active ? "#e0e7ff" : "#64748b"}
           emissive={active ? "#6366f1" : "#334155"}
@@ -59,6 +66,7 @@ function CheckpointBeacon({ point, active }) {
 
 export default function MissionSystem({
   missionId,
+  runId = 0,
   active,
   vehicleRef,
   driving,
@@ -70,17 +78,19 @@ export default function MissionSystem({
     startedAt: 0,
     lastEmit: 0,
     finished: false,
+    runId: 0,
   });
 
   const mission = getMission(missionId);
 
   useEffect(() => {
-    if (!active || !mission) {
+    if (!active || !mission || !runId) {
       runtimeRef.current = {
         checkpoint: 0,
         startedAt: 0,
         lastEmit: 0,
         finished: false,
+        runId: 0,
       };
       return;
     }
@@ -90,23 +100,31 @@ export default function MissionSystem({
       startedAt: performance.now(),
       lastEmit: 0,
       finished: false,
+      runId,
     };
 
     onUpdate?.({
       status: "active",
+      runId,
       checkpoint: 0,
       total: mission.checkpoints.length,
       timeLeft: mission.duration,
       reward: mission.reward,
       message: "Drive to the first checkpoint.",
     });
-  }, [active, mission, onUpdate]);
+  }, [active, mission, onUpdate, runId]);
 
   useFrame(() => {
     if (!active || !mission) return;
 
     const runtime = runtimeRef.current;
-    if (runtime.finished || !runtime.startedAt) return;
+    if (
+      runtime.finished ||
+      !runtime.startedAt ||
+      runtime.runId !== runId
+    ) {
+      return;
+    }
 
     const now = performance.now();
     const elapsed = (now - runtime.startedAt) / 1000;
@@ -116,11 +134,13 @@ export default function MissionSystem({
       runtime.finished = true;
       onFinish?.({
         status: "failed",
+        runId,
         checkpoint: runtime.checkpoint,
         total: mission.checkpoints.length,
         timeLeft: 0,
         reward: mission.reward,
         title: mission.name,
+        payoutCredited: 0,
         message: "Time expired. Reset and try the route again.",
       });
       return;
@@ -141,11 +161,13 @@ export default function MissionSystem({
           runtime.finished = true;
           onFinish?.({
             status: "success",
+            runId,
             checkpoint: mission.checkpoints.length,
             total: mission.checkpoints.length,
             timeLeft,
             reward: mission.reward,
             title: mission.name,
+            payoutCredited: mission.reward,
             message: "Route complete. Mission cleared.",
           });
           return;
@@ -153,6 +175,7 @@ export default function MissionSystem({
 
         onUpdate?.({
           status: "active",
+          runId,
           checkpoint: runtime.checkpoint,
           total: mission.checkpoints.length,
           timeLeft,
@@ -166,6 +189,7 @@ export default function MissionSystem({
       runtime.lastEmit = now;
       onUpdate?.({
         status: "active",
+        runId,
         checkpoint: runtime.checkpoint,
         total: mission.checkpoints.length,
         timeLeft,
