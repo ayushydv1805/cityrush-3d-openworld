@@ -289,7 +289,7 @@ export default function VehicleController({
 
     let speed = speedRef.current;
 
-    if (driving) {
+    if (driving && locked) {
       const keys = keysRef.current;
       const throttle = (keys.has("w") ? 1 : 0) - (keys.has("s") ? 1 : 0);
       const steering = (keys.has("d") ? 1 : 0) - (keys.has("a") ? 1 : 0);
