@@ -76,7 +76,7 @@ export default function GameHUD({
           <>
             <div className="mission-panel-head">
               <div>
-                <span>PHASE 6 • MISSION BOARD</span>
+                <span>PHASE 7 • MISSION BOARD</span>
                 <strong>CHOOSE A RUN</strong>
               </div>
               <b>{missions.length.toString().padStart(2, "0")}</b>
