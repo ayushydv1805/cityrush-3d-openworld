@@ -92,6 +92,7 @@ function Scene({
         playerRef={playerRef}
         vehicleRef={vehicleRef}
         driving={driving}
+        locked={locked}
         yawRef={yawRef}
         pitchRef={pitchRef}
       />
