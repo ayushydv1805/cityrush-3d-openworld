@@ -14,7 +14,7 @@ app.use(express.json());
 app.get("/", (_, res) => res.json({
   name: "CityRush 3D Server",
   status: "online",
-  version: "0.6.0",
+  version: "0.6.1",
   phase: 6,
   city: "Chandigarh",
   systems: ["city", "player", "vehicle", "traffic", "pedestrians", "missions"],
@@ -23,7 +23,7 @@ app.get("/", (_, res) => res.json({
 app.get("/health", (_, res) => res.json({
   ok: true,
   phase: 6,
-  version: "0.6.0",
+  version: "0.6.1",
   city: "Chandigarh",
   vehicleSystem: "online",
   trafficSystem: "online",
@@ -42,7 +42,7 @@ const io = new Server(httpServer, {
 io.on("connection", (socket) => {
   socket.emit("server:ready", {
     id: socket.id,
-    version: "0.6.0",
+    version: "0.6.1",
     phase: 6,
     city: "Chandigarh",
     vehicleSystem: "online",
