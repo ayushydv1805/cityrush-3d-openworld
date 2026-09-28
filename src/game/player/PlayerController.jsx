@@ -157,7 +157,7 @@ export default function PlayerController({
   useEffect(() => {
     const down = (event) => {
       const key = normalizeKey(event);
-      if (!key || !enabled) return;
+      if (!key || !enabled || !locked) return;
       keysRef.current.add(key);
       if (key === "space") jumpQueuedRef.current = true;
       if (["w", "a", "s", "d", "shift", "space"].includes(key)) event.preventDefault();
