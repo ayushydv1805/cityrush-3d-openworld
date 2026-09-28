@@ -60,6 +60,7 @@ io.on("connection", (socket) => {
     city: "Chandigarh",
     vehicleSystem: "online",
     missionSystem: "online",
+    economySystem: "online",
   });
 });
 
