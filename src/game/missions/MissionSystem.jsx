@@ -59,6 +59,7 @@ function CheckpointBeacon({ point, active }) {
 
 export default function MissionSystem({
   missionId,
+  runId = 0,
   active,
   vehicleRef,
   driving,
@@ -70,12 +71,13 @@ export default function MissionSystem({
     startedAt: 0,
     lastEmit: 0,
     finished: false,
+    runId: 0,
   });
 
   const mission = getMission(missionId);
 
   useEffect(() => {
-    if (!active || !mission) {
+    if (!active || !mission || !runId) {
       runtimeRef.current = {
         checkpoint: 0,
         startedAt: 0,
@@ -90,10 +92,12 @@ export default function MissionSystem({
       startedAt: performance.now(),
       lastEmit: 0,
       finished: false,
+      runId: 0,
     };
 
     onUpdate?.({
       status: "active",
+      runId,
       checkpoint: 0,
       total: mission.checkpoints.length,
       timeLeft: mission.duration,
@@ -106,7 +110,7 @@ export default function MissionSystem({
     if (!active || !mission) return;
 
     const runtime = runtimeRef.current;
-    if (runtime.finished || !runtime.startedAt) return;
+    if (runtime.finished || !runtime.startedAt || runtime.runId !== runId) return;
 
     const now = performance.now();
     const elapsed = (now - runtime.startedAt) / 1000;
@@ -116,6 +120,7 @@ export default function MissionSystem({
       runtime.finished = true;
       onFinish?.({
         status: "failed",
+        runId,
         checkpoint: runtime.checkpoint,
         total: mission.checkpoints.length,
         timeLeft: 0,
@@ -141,6 +146,7 @@ export default function MissionSystem({
           runtime.finished = true;
           onFinish?.({
             status: "success",
+            runId,
             checkpoint: mission.checkpoints.length,
             total: mission.checkpoints.length,
             timeLeft,
@@ -153,6 +159,7 @@ export default function MissionSystem({
 
         onUpdate?.({
           status: "active",
+          runId,
           checkpoint: runtime.checkpoint,
           total: mission.checkpoints.length,
           timeLeft,
@@ -166,6 +173,7 @@ export default function MissionSystem({
       runtime.lastEmit = now;
       onUpdate?.({
         status: "active",
+        runId,
         checkpoint: runtime.checkpoint,
         total: mission.checkpoints.length,
         timeLeft,
