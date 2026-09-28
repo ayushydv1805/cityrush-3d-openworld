@@ -273,7 +273,7 @@ export default function VehicleController({
       window.removeEventListener("keyup", up, true);
       window.removeEventListener("blur", clear);
     };
-  }, [city, driving, onEnter, onExit, pitchRef, playerRef, yawRef]);
+  }, [city, driving, locked, onEnter, onExit, pitchRef, playerRef, yawRef]);
 
   useFrame((state, delta) => {
     const group = groupRef.current;
