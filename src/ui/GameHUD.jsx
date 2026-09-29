@@ -1,8 +1,11 @@
 import { formatRupees } from "../game/economy/economyData";
+import { getGarageTier } from "../game/garage/garageData";
+
 export default function GameHUD({
   city,
   economy,
   economyNotice,
+  garage,
   info,
   vehicleInfo,
   driving,
@@ -24,6 +27,7 @@ export default function GameHUD({
   const nextCheckpoint =
     selectedMission?.checkpoints?.[mission?.checkpoint ?? 0]?.label ?? "FINISH";
   const timeLeft = Math.max(0, Math.ceil(mission?.timeLeft ?? 0));
+  const garageTier = getGarageTier(garage);
 
   return (
     <div className="game-ui">
@@ -37,8 +41,8 @@ export default function GameHUD({
         </div>
 
         <div className="game-phase">
-          PHASE 7
-          <span>MONEY + ECONOMY</span>
+          PHASE 8
+          <span>GARAGE + UPGRADES</span>
         </div>
 
         <button className="game-exit" onClick={onExit}>
@@ -55,8 +59,8 @@ export default function GameHUD({
       {driving && (
         <div className="vehicle-badge">
           <span className="city-kicker">ACTIVE VEHICLE</span>
-          <strong>CIVIC CRUISER</strong>
-          <small>CITY SEDAN • FRONT WHEEL STEER</small>
+          <strong>CIVIC CRUISER <em>LVL {garageTier}</em></strong>
+          <small>CITY SEDAN • GARAGE TIER {garageTier}/3</small>
         </div>
       )}
 
@@ -76,7 +80,7 @@ export default function GameHUD({
           <>
             <div className="mission-panel-head">
               <div>
-                <span>PHASE 7 • MISSION BOARD</span>
+                <span>PHASE 8 • MISSION BOARD</span>
                 <strong>CHOOSE A RUN</strong>
               </div>
               <b>{missions.length.toString().padStart(2, "0")}</b>
@@ -94,7 +98,7 @@ export default function GameHUD({
                   <span className="mission-card-copy">
                     <strong>{item.name}</strong>
                     <small>{item.description}</small>
-                    <em>{item.checkpoints.length} CHECKPOINTS • {item.duration}s • ₹{item.reward}</em>
+                    <em>{item.checkpoints.length} CHECKPOINTS • {item.duration}s • ₹{formatRupees(item.reward)}</em>
                   </span>
                   <b className="mission-card-cta">START</b>
                 </button>
@@ -129,7 +133,7 @@ export default function GameHUD({
               <div className="mission-stats">
                 <span><small>NEXT</small><b>{nextCheckpoint}</b></span>
                 <span><small>TIME</small><b className={timeLeft <= 10 ? "warning" : ""}>{timeLeft}s</b></span>
-                <span><small>REWARD</small><b>₹{mission.reward}</b></span>
+                <span><small>REWARD</small><b>₹{formatRupees(mission.reward)}</b></span>
               </div>
             </div>
           </>
@@ -206,7 +210,7 @@ export default function GameHUD({
           <span className="prompt-key">E</span>
           <div>
             <strong>ENTER CIVIC CRUISER</strong>
-            <small>Parked on the boulevard • {city.name}</small>
+            <small>Garage tier {garageTier}/3 • {city.name}</small>
           </div>
         </div>
       )}
@@ -232,8 +236,8 @@ export default function GameHUD({
             <span className="overlay-kicker">CITY RUSH • {city.name.toUpperCase()}</span>
             <h2>TAKE CONTROL</h2>
             <p>
-              The city is alive, and Phase 7 now pays you for clearing those driving routes.
-              Drive the Civic Cruiser through glowing checkpoints before time runs out.
+              Phase 8 adds the garage loop: clear driving routes, collect cash, then return to the garage
+              to tune the Civic Cruiser. Drive through glowing checkpoints before time runs out.
             </p>
             <button className="primary overlay-button" onClick={onTakeControl}>
               CLICK TO PLAY <b>→</b>

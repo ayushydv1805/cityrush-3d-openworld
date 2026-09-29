@@ -2,9 +2,9 @@
 
 **Your City. Your Ride. Your Run.**
 
-## Phase 7 — Money + Economy
+## Phase 8 — Garage + Vehicle Upgrades
 
-Phase 7 makes successful driving missions pay real in-game cash. The wallet, total earnings, paid mission count and best payout persist in browser local storage and appear on the menu and in-game HUD.
+Phase 8 closes the first economy loop: finish driving missions, earn in-game rupees, then spend that cash on permanent Civic Cruiser upgrades. Wallet and garage progress persist in browser local storage.
 
 ### Included
 - Living Chandigarh sector-style city
@@ -18,19 +18,26 @@ Phase 7 makes successful driving missions pay real in-game cash. The wallet, tot
 - ₹1,500 starting cash
 - Mission payouts: ₹500, ₹800 and ₹1,200
 - Persistent wallet using browser local storage
-- Total earned, paid mission count and best payout tracking
-- Mission payout toast and completion credit UI
-- Economy stats on the main menu and controls panel
-- Backend /economy metadata route
-- Phase 7 economy server status
+- Phase 8 garage with Civic Cruiser performance tuning
+- Engine, brakes, steering and grip upgrades
+- Three upgrade levels per component
+- Upgrade purchases immediately change vehicle handling
+- Garage tier visuals on the 3D vehicle
+- Garage and controls panels with responsive UI
+- Backend /economy and /garage metadata routes
+- Phase 8 garage server status
 
-### Phase 7 Missions & Payouts
-- First Run: 4 checkpoints, 90 seconds → ₹500
-- Sector Courier: 4 checkpoints, 85 seconds → ₹800
-- Roundabout Run: 6 checkpoints, 110 seconds → ₹1,200
+### Phase 8 Upgrade Bay
+- Engine: higher top speed + acceleration
+- Brakes: stronger braking response
+- Steering: quicker steering input
+- Grip: improved corner stability
+- Three levels per component, with increasing purchase cost
+- Purchases are blocked when the wallet cannot cover the next level
+- Upgrades persist in browser local storage
 
-### Economy Rules
-Cash is earned only when a mission reaches the success state. Failed or aborted missions give no payout. Phase 8 will use this wallet for the garage and vehicle upgrades.
+### Economy + Garage Rules
+Cash is earned only when a mission reaches the success state. Failed or aborted missions give no payout. Garage purchases spend cash immediately and cannot reduce the wallet below zero. Upgrades persist for the same browser save.
 
 ### Controls
 - W: accelerate / move forward
@@ -41,6 +48,7 @@ Cash is earned only when a mission reaches the success state. Failed or aborted 
 - E: enter / exit vehicle
 - Mouse: camera
 - Mission Board: click START on a mission card
+- Garage: open from the main menu
 
 ### Stack
 React + Vite, Three.js, React Three Fiber, React Three Drei, Node.js, Express and Socket.IO.

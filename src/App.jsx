@@ -1,21 +1,35 @@
 import { Canvas } from "@react-three/fiber";
 import { PerspectiveCamera } from "@react-three/drei";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import ChandigarhWorld from "./game/world/ChandigarhWorld";
 import TrafficWorld from "./game/world/TrafficWorld";
 import { CITY } from "./game/city/chandigarh";
 import { MISSION_LIST, getMission } from "./game/missions/missionData";
-import { addMissionReward, formatRupees } from "./game/economy/economyData";
+import { addMissionReward, formatRupees, spendCash } from "./game/economy/economyData";
+import { buyUpgrade, getEffectiveVehicleStats, getNextUpgrade } from "./game/garage/garageData";
 import useEconomy from "./game/economy/useEconomy";
+import useGarage from "./game/garage/useGarage";
 import PlayerController from "./game/player/PlayerController";
 import VehicleController from "./game/vehicles/VehicleController";
 import ThirdPersonCamera from "./game/camera/ThirdPersonCamera";
 import GameHUD from "./ui/GameHUD";
 import MainMenu from "./ui/MainMenu";
+import GaragePanel from "./ui/GaragePanel";
 import MissionSystem from "./game/missions/MissionSystem";
 
-const idleMission = () => ({ id: null, runId: 0, status: "idle", checkpoint: 0, total: 0, timeLeft: 0, reward: 0, payoutCredited: 0, title: "", message: "Choose a mission from the Mission Board." });
+const idleMission = () => ({
+  id: null,
+  runId: 0,
+  status: "idle",
+  checkpoint: 0,
+  total: 0,
+  timeLeft: 0,
+  reward: 0,
+  payoutCredited: 0,
+  title: "",
+  message: "Choose a mission from the Mission Board.",
+});
 
 function Scene({
   playerRef,
@@ -24,6 +38,8 @@ function Scene({
   pitchRef,
   locked,
   driving,
+  vehicleStats,
+  garageTier,
   onPlayerUpdate,
   onVehicleUpdate,
   onEnterVehicle,
@@ -40,11 +56,7 @@ function Scene({
       <fog attach="fog" args={["#b7c7cf", 72, 230]} />
 
       <ambientLight intensity={1.35} />
-      <hemisphereLight
-        intensity={1.0}
-        groundColor="#64715d"
-        color="#cfe2ff"
-      />
+      <hemisphereLight intensity={1.0} groundColor="#64715d" color="#cfe2ff" />
       <directionalLight
         castShadow
         position={[45, 65, 28]}
@@ -89,6 +101,8 @@ function Scene({
         pitchRef={pitchRef}
         driving={driving}
         locked={locked}
+        vehicleStats={vehicleStats}
+        garageTier={garageTier}
         onEnter={onEnterVehicle}
         onExit={onExitVehicle}
         onUpdate={onVehicleUpdate}
@@ -111,7 +125,10 @@ export default function App() {
   const [locked, setLocked] = useState(false);
   const [driving, setDriving] = useState(false);
   const [controlsOpen, setControlsOpen] = useState(false);
+  const [garageOpen, setGarageOpen] = useState(false);
+  const [garageNotice, setGarageNotice] = useState(null);
   const [economy, setEconomy] = useEconomy();
+  const [garage, setGarage] = useGarage();
   const [economyNotice, setEconomyNotice] = useState(null);
 
   const [info, setInfo] = useState({
@@ -133,11 +150,14 @@ export default function App() {
   const [mission, setMission] = useState(idleMission);
   const missionRunRef = useRef(0);
   const rewardedRunsRef = useRef(new Set());
+  const purchaseLockRef = useRef(false);
 
   const playerRef = useRef(null);
   const vehicleRef = useRef(null);
   const yawRef = useRef(0);
   const pitchRef = useRef(-0.16);
+
+  const vehicleStats = useMemo(() => getEffectiveVehicleStats(garage), [garage]);
 
   useEffect(() => {
     if (!economyNotice) return undefined;
@@ -146,14 +166,16 @@ export default function App() {
   }, [economyNotice]);
 
   useEffect(() => {
-    const onPointerLock = () => {
-      setLocked(document.pointerLockElement === document.body);
-    };
+    if (!garageNotice) return undefined;
+    const id = window.setTimeout(() => setGarageNotice(null), 3000);
+    return () => window.clearTimeout(id);
+  }, [garageNotice]);
+
+  useEffect(() => {
+    const onPointerLock = () => setLocked(document.pointerLockElement === document.body);
 
     const onKeyDown = (event) => {
-      if (event.code === "Escape") {
-        document.exitPointerLock?.();
-      }
+      if (event.code === "Escape") document.exitPointerLock?.();
     };
 
     document.addEventListener("pointerlockchange", onPointerLock);
@@ -171,6 +193,8 @@ export default function App() {
 
   const enterCity = useCallback(() => {
     setControlsOpen(false);
+    setGarageOpen(false);
+    setGarageNotice(null);
     setStarted(true);
     setDriving(false);
     setMission(idleMission());
@@ -198,14 +222,8 @@ export default function App() {
     setStarted(false);
   }, []);
 
-  const handlePlayerUpdate = useCallback((next) => {
-    setInfo(next);
-  }, []);
-
-  const handleVehicleUpdate = useCallback((next) => {
-    setVehicleInfo(next);
-  }, []);
-
+  const handlePlayerUpdate = useCallback((next) => setInfo(next), []);
+  const handleVehicleUpdate = useCallback((next) => setVehicleInfo(next), []);
 
   const startMission = useCallback((id) => {
     const selected = getMission(id);
@@ -267,6 +285,35 @@ export default function App() {
     }));
   }, [mission.runId, mission.status, setEconomy]);
 
+  const purchaseUpgrade = useCallback((key) => {
+    if (purchaseLockRef.current) return;
+
+    const next = getNextUpgrade(key, garage);
+    if (!next) return;
+
+    if (next.cost > economy.cash) {
+      setGarageNotice({
+        type: "error",
+        title: "INSUFFICIENT CASH",
+        message: `You need ₹${formatRupees(next.cost - economy.cash)} more for the next ${next.label} level.`,
+      });
+      return;
+    }
+
+    purchaseLockRef.current = true;
+    setEconomy((previous) => spendCash(previous, next.cost));
+    setGarage((previous) => buyUpgrade(key, previous));
+    setGarageNotice({
+      type: "success",
+      title: `${next.label} UPGRADED`,
+      message: `Level ${next.nextLevel} installed for ₹${formatRupees(next.cost)}.`,
+    });
+
+    window.setTimeout(() => {
+      purchaseLockRef.current = false;
+    }, 180);
+  }, [economy.cash, garage, setEconomy, setGarage]);
+
   if (started) {
     return (
       <div
@@ -275,14 +322,7 @@ export default function App() {
           if (!locked) takeControl();
         }}
       >
-        <Canvas
-          shadows
-          dpr={[1, 1.5]}
-          gl={{
-            antialias: true,
-            powerPreference: "high-performance",
-          }}
-        >
+        <Canvas shadows dpr={[1, 1.5]} gl={{ antialias: true, powerPreference: "high-performance" }}>
           <Scene
             playerRef={playerRef}
             vehicleRef={vehicleRef}
@@ -290,6 +330,8 @@ export default function App() {
             pitchRef={pitchRef}
             locked={locked}
             driving={driving}
+            vehicleStats={vehicleStats}
+            garageTier={vehicleStats.garageTier}
             onPlayerUpdate={handlePlayerUpdate}
             onVehicleUpdate={handleVehicleUpdate}
             onEnterVehicle={enterVehicle}
@@ -304,6 +346,7 @@ export default function App() {
           city={CITY}
           economy={economy}
           economyNotice={economyNotice}
+          garage={garage}
           info={info}
           vehicleInfo={vehicleInfo}
           driving={driving}
@@ -325,29 +368,26 @@ export default function App() {
       <MainMenu
         onEnter={enterCity}
         economy={economy}
-        onControls={() => setControlsOpen(true)}
+        garage={garage}
+        onGarage={() => {
+          setControlsOpen(false);
+          setGarageOpen(true);
+        }}
+        onControls={() => {
+          setGarageOpen(false);
+          setControlsOpen(true);
+        }}
       />
 
       {controlsOpen && (
-        <div
-          className="modal-backdrop"
-          onClick={() => setControlsOpen(false)}
-        >
-          <section
-            className="settings-panel"
-            onClick={(event) => event.stopPropagation()}
-          >
+        <div className="modal-backdrop" onClick={() => setControlsOpen(false)}>
+          <section className="settings-panel" onClick={(event) => event.stopPropagation()}>
             <div className="settings-head">
               <div>
-                <span className="eyebrow">PHASE 7</span>
+                <span className="eyebrow">PHASE 8</span>
                 <h2>CONTROLS</h2>
               </div>
-              <button
-                className="modal-close"
-                onClick={() => setControlsOpen(false)}
-              >
-                ×
-              </button>
+              <button className="modal-close" onClick={() => setControlsOpen(false)}>×</button>
             </div>
 
             <div className="settings-grid">
@@ -357,11 +397,13 @@ export default function App() {
               <div><b>E</b><span>Enter / exit vehicle</span></div>
               <div><b>MOUSE</b><span>Rotate camera</span></div>
               <div><b>ESC</b><span>Release mouse control</span></div>
+              <div><b>GARAGE</b><span>Buy permanent vehicle upgrades with mission cash</span></div>
+              <div><b>SAVE</b><span>Wallet + upgrades persist in browser storage</span></div>
             </div>
 
             <div className="settings-economy">
               <div><span>WALLET</span><strong>₹{formatRupees(economy.cash)}</strong></div>
-              <div><span>TOTAL EARNED</span><strong>₹{formatRupees(economy.totalEarned)}</strong></div>
+              <div><span>UPGRADE TIER</span><strong>{vehicleStats.garageTier}/3</strong></div>
               <div><span>MISSIONS PAID</span><strong>{economy.missionsCompleted}</strong></div>
             </div>
 
@@ -370,6 +412,16 @@ export default function App() {
             </button>
           </section>
         </div>
+      )}
+
+      {garageOpen && (
+        <GaragePanel
+          garage={garage}
+          economy={economy}
+          garageNotice={garageNotice}
+          onClose={() => setGarageOpen(false)}
+          onPurchase={purchaseUpgrade}
+        />
       )}
     </>
   );

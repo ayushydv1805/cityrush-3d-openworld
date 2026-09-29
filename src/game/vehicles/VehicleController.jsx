@@ -46,24 +46,9 @@ function Lamp({ position, rear = false }) {
   );
 }
 
-function Wheel({ position }) {
+function WheelAssembly({ refValue }) {
   return (
-    <group position={position}>
-      <mesh ref={(node) => node?.userData} rotation-z={Math.PI / 2} castShadow>
-        <cylinderGeometry args={[VEHICLE.wheelRadius, VEHICLE.wheelRadius, 0.28, 24]} />
-        <meshStandardMaterial color="#17191d" roughness={0.72} metalness={0.08} />
-      </mesh>
-      <mesh position={[0, 0, 0]} rotation-z={Math.PI / 2}>
-        <cylinderGeometry args={[0.19, 0.19, 0.3, 20]} />
-        <meshStandardMaterial color="#69717a" roughness={0.48} metalness={0.62} />
-      </mesh>
-    </group>
-  );
-}
-
-function WheelAssembly({ refValue, position }) {
-  return (
-    <group ref={refValue} position={position}>
+    <group ref={refValue}>
       <mesh castShadow rotation-z={Math.PI / 2}>
         <cylinderGeometry args={[VEHICLE.wheelRadius, VEHICLE.wheelRadius, 0.28, 24]} />
         <meshStandardMaterial color="#17191d" roughness={0.72} metalness={0.08} />
@@ -76,7 +61,7 @@ function WheelAssembly({ refValue, position }) {
   );
 }
 
-function VehicleModel({ refs }) {
+function VehicleModel({ refs, garageTier }) {
   return (
     <group>
       <group ref={refs.body}>
@@ -142,6 +127,33 @@ function VehicleModel({ refs }) {
           <boxGeometry args={[0.52, 0.08, 0.06]} />
           <meshStandardMaterial color="#262b2f" roughness={0.64} />
         </mesh>
+
+        {garageTier >= 1 && (
+          <mesh position={[0, 0.62, -1.82]} castShadow>
+            <boxGeometry args={[1.12, 0.08, 0.18]} />
+            <meshStandardMaterial color="#566a95" roughness={0.3} metalness={0.6} />
+          </mesh>
+        )}
+
+        {garageTier >= 2 && (
+          <>
+            <mesh position={[-0.82, 0.58, 0.35]} castShadow>
+              <boxGeometry args={[0.08, 0.15, 1.45]} />
+              <meshStandardMaterial color="#7c8fc0" roughness={0.26} metalness={0.65} />
+            </mesh>
+            <mesh position={[0.82, 0.58, 0.35]} castShadow>
+              <boxGeometry args={[0.08, 0.15, 1.45]} />
+              <meshStandardMaterial color="#7c8fc0" roughness={0.26} metalness={0.65} />
+            </mesh>
+          </>
+        )}
+
+        {garageTier >= 3 && (
+          <mesh position={[0, 1.12, 1.35]} castShadow>
+            <boxGeometry args={[1.4, 0.09, 0.18]} />
+            <meshStandardMaterial color="#aab7dc" roughness={0.24} metalness={0.7} />
+          </mesh>
+        )}
       </group>
 
       <WheelAssembly refValue={refs.frontLeft} position={[-0.99, 0.38, -1.25]} />
@@ -165,6 +177,8 @@ export default function VehicleController({
   pitchRef,
   driving,
   locked,
+  vehicleStats = VEHICLE,
+  garageTier = 0,
   onEnter,
   onExit,
   onUpdate,
@@ -180,6 +194,11 @@ export default function VehicleController({
   const speedRef = useRef(0);
   const nearbyRef = useRef(false);
   const eventLockRef = useRef(false);
+  const statsRef = useRef(vehicleStats);
+
+  useEffect(() => {
+    statsRef.current = { ...VEHICLE, ...vehicleStats };
+  }, [vehicleStats]);
 
   const refs = {
     body: bodyRef,
@@ -247,9 +266,7 @@ export default function VehicleController({
       }
 
       keysRef.current.add(key);
-      if (["w", "a", "s", "d", "space"].includes(key)) {
-        event.preventDefault();
-      }
+      if (["w", "a", "s", "d", "space"].includes(key)) event.preventDefault();
     };
 
     const up = (event) => {
@@ -280,6 +297,7 @@ export default function VehicleController({
     const group = groupRef.current;
     if (!group) return;
 
+    const stats = statsRef.current;
     const dt = Math.min(delta, 0.04);
     const player = playerRef.current;
     const distanceToPlayer = player
@@ -295,23 +313,24 @@ export default function VehicleController({
       const throttle = (keys.has("w") ? 1 : 0) - (keys.has("s") ? 1 : 0);
       const steering = (keys.has("d") ? 1 : 0) - (keys.has("a") ? 1 : 0);
 
-      const target = throttle > 0 ? VEHICLE.maxSpeed : throttle < 0 ? -VEHICLE.reverseSpeed : 0;
+      const target = throttle > 0 ? stats.maxSpeed : throttle < 0 ? -stats.reverseSpeed : 0;
       if (throttle !== 0) {
-        const rate = Math.abs(target) > Math.abs(speed) ? VEHICLE.acceleration : VEHICLE.braking;
+        const rate = Math.abs(target) > Math.abs(speed) ? stats.acceleration : stats.braking;
         if (speed < target) speed = Math.min(speed + rate * dt, target);
         if (speed > target) speed = Math.max(speed - rate * dt, target);
       } else {
         speed = THREE.MathUtils.damp(
           speed,
           0,
-          keys.has("space") ? VEHICLE.handbrakeDrag : VEHICLE.coastDrag,
+          keys.has("space") ? stats.handbrakeDrag : stats.coastDrag,
           dt,
         );
       }
 
-      const speedRatio = THREE.MathUtils.clamp(Math.abs(speed) / VEHICLE.maxSpeed, 0, 1);
-      const turnScale = (0.28 + speedRatio * 0.95) * (speed < 0 ? -0.76 : 1);
-      group.rotation.y += steering * VEHICLE.steering * turnScale * dt;
+      const speedRatio = THREE.MathUtils.clamp(Math.abs(speed) / stats.maxSpeed, 0, 1);
+      const gripFactor = THREE.MathUtils.clamp(stats.grip / VEHICLE.grip, 0.85, 1.4);
+      const turnScale = (0.28 + speedRatio * 0.95) * (speed < 0 ? -0.76 : 1) * gripFactor;
+      group.rotation.y += steering * stats.steering * turnScale * dt;
 
       const forwardX = Math.sin(group.rotation.y);
       const forwardZ = -Math.cos(group.rotation.y);
@@ -328,17 +347,11 @@ export default function VehicleController({
       );
 
       let collision = false;
-      if (canVehicleOccupy(nextX, group.position.z, city)) {
-        group.position.x = nextX;
-      } else {
-        collision = true;
-      }
+      if (canVehicleOccupy(nextX, group.position.z, city)) group.position.x = nextX;
+      else collision = true;
 
-      if (canVehicleOccupy(group.position.x, nextZ, city)) {
-        group.position.z = nextZ;
-      } else {
-        collision = true;
-      }
+      if (canVehicleOccupy(group.position.x, nextZ, city)) group.position.z = nextZ;
+      else collision = true;
 
       if (collision) speed *= 0.16;
 
@@ -349,9 +362,7 @@ export default function VehicleController({
 
       const wheelSpin = speed * dt / VEHICLE.wheelRadius;
       [frontLeftRef, frontRightRef, rearLeftRef, rearRightRef].forEach((ref) => {
-        if (ref.current) {
-          ref.current.children[0].rotation.x -= wheelSpin;
-        }
+        if (ref.current) ref.current.children[0].rotation.x -= wheelSpin;
       });
 
       const steerAngle = steering * 0.3;
@@ -391,7 +402,7 @@ export default function VehicleController({
 
   return (
     <group ref={groupRef} position={VEHICLE.spawn}>
-      <VehicleModel refs={refs} />
+      <VehicleModel refs={refs} garageTier={garageTier} />
     </group>
   );
 }

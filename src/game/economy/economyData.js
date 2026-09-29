@@ -63,6 +63,18 @@ export function addMissionReward(economy, amount) {
   });
 }
 
+export function spendCash(economy, amount) {
+  const cost = Math.max(0, Math.floor(Number(amount) || 0));
+  const normalized = normalizeEconomy(economy);
+
+  if (cost > normalized.cash) return normalized;
+
+  return {
+    ...normalized,
+    cash: normalized.cash - cost,
+  };
+}
+
 export function formatRupees(amount) {
   return new Intl.NumberFormat("en-IN", {
     maximumFractionDigits: 0,
