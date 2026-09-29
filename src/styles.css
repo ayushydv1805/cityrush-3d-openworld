@@ -674,3 +674,157 @@ button:focus-visible{outline:2px solid #a5b4fc;outline-offset:3px}
 @media(max-width:900px){.garage-overview{grid-template-columns:1fr}.garage-upgrade-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:620px){.garage-panel{padding:20px}.garage-head{gap:14px}.garage-head h2{font-size:46px}.garage-head-actions{gap:6px}.garage-wallet{display:none}.garage-car-card{min-height:290px}.garage-upgrade-grid{grid-template-columns:1fr}.garage-section-row,.garage-footer{align-items:flex-start;flex-direction:column}.garage-footer .secondary{width:100%}.actions{display:grid;grid-template-columns:1fr}.actions button{width:100%}}
 @media(max-width:520px){.garage-backdrop{padding:10px}.garage-panel{max-height:calc(100vh - 20px)}}
+
+
+/* Phase 9 reputation + ranks */
+.reputation-badge{
+  position:absolute;
+  right:22px;
+  top:200px;
+  width:min(225px,calc(100vw - 44px));
+  padding:12px 14px;
+  background:linear-gradient(180deg,rgba(17,28,53,.92),rgba(7,15,31,.9));
+  border:1px solid #445271;
+  border-radius:10px;
+  backdrop-filter:blur(10px);
+  box-shadow:0 18px 50px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.04);
+}
+.reputation-badge-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.reputation-badge-top>b{font-size:6px;letter-spacing:1.3px;color:#9fd9bd}
+.reputation-badge>strong{display:block;margin-top:5px;font:800 23px/.9 'Barlow Condensed';letter-spacing:.6px}
+.reputation-mini-progress{height:4px;margin:9px 0 6px;background:#172139;border-radius:99px;overflow:hidden}
+.reputation-mini-progress span{display:block;height:100%;background:linear-gradient(90deg,#7c83f3,#a7b0ff);box-shadow:0 0 15px rgba(129,140,248,.42);border-radius:99px}
+.reputation-badge>small{font-size:7px;letter-spacing:1px;color:#687892}
+
+.mission-rep-bonus{
+  margin-top:12px;
+  padding:7px 9px;
+  border:1px solid #344868;
+  border-radius:7px;
+  background:#0d1930;
+  color:#9aa8ff;
+  text-align:center;
+  font-size:7px;
+  letter-spacing:.65px;
+}
+.mission-rep-credit{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin:0 auto 13px;
+  padding:8px 11px;
+  border:1px solid #4d4b70;
+  background:#181933;
+  border-radius:7px;
+  color:#b9b8ff;
+  font-size:8px;
+  letter-spacing:1.1px;
+  font-weight:800;
+}
+.reputation-toast{
+  position:absolute;
+  left:50%;
+  top:186px;
+  transform:translateX(-50%);
+  min-width:310px;
+  max-width:calc(100vw - 40px);
+  padding:14px 18px;
+  text-align:center;
+  background:linear-gradient(180deg,rgba(29,31,72,.97),rgba(9,13,31,.95));
+  border:1px solid #6e72b7;
+  border-radius:11px;
+  box-shadow:0 24px 70px rgba(0,0,0,.4),0 0 38px rgba(99,102,241,.18);
+  backdrop-filter:blur(12px);
+  z-index:9;
+  animation:reputationToastIn .24s ease-out;
+}
+.reputation-toast span{display:block;font-size:7px;letter-spacing:2.2px;color:#aeb6ff}
+.reputation-toast strong{display:block;margin-top:5px;font:800 33px/.9 'Barlow Condensed';color:#eceeff}
+.reputation-toast small{display:block;margin-top:6px;font-size:8px;color:#8893ac;line-height:1.4}
+@keyframes reputationToastIn{
+  from{opacity:0;transform:translate(-50%,-10px)}
+  to{opacity:1;transform:translate(-50%,0)}
+}
+
+.reputation-backdrop{padding:18px;overflow:auto}
+.reputation-panel{
+  width:min(900px,100%);
+  max-height:min(900px,calc(100vh - 36px));
+  overflow:auto;
+  background:linear-gradient(180deg,#0a1226 0%,#071022 100%);
+  border:1px solid #394967;
+  border-radius:16px;
+  padding:28px;
+  box-shadow:0 40px 120px rgba(0,0,0,.62),inset 0 1px rgba(255,255,255,.045);
+}
+.reputation-panel::-webkit-scrollbar{width:7px}
+.reputation-panel::-webkit-scrollbar-thumb{background:#33415d;border-radius:99px}
+.reputation-panel::-webkit-scrollbar-track{background:transparent}
+.reputation-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+.reputation-head h2{font:800 62px/.88 'Barlow Condensed';margin:0}
+.reputation-head p{margin:10px 0 0;color:#8190a7;font-size:12px}
+.reputation-hero{display:grid;grid-template-columns:1.15fr .85fr;gap:12px;margin-top:26px}
+.reputation-rank-card,.reputation-stats,.reputation-ladder,.reputation-rules{
+  border:1px solid #293851;
+  background:linear-gradient(180deg,rgba(14,27,52,.78),rgba(8,18,38,.9));
+  border-radius:12px;
+}
+.reputation-rank-card{padding:24px;display:flex;flex-direction:column;justify-content:center;min-height:220px}
+.reputation-rank-card>span,.reputation-rank-card>small{font-size:7px;letter-spacing:1.9px;color:#687893}
+.reputation-rank-card>strong{margin:7px 0 2px;font:800 42px/.88 'Barlow Condensed'}
+.reputation-rank-card>b{font:700 14px 'Barlow Condensed';color:#aeb6ff;letter-spacing:.8px}
+.reputation-progress{height:8px;margin:18px 0 9px;background:#16213a;border:1px solid #27364f;border-radius:99px;overflow:hidden}
+.reputation-progress span{display:block;height:100%;background:linear-gradient(90deg,#5b64df,#a8b0ff);box-shadow:0 0 18px rgba(129,140,248,.45);border-radius:99px}
+.reputation-stats{display:grid;grid-template-columns:1fr 1fr}
+.reputation-stats div{padding:18px;border-bottom:1px solid #26354e}
+.reputation-stats div:nth-child(odd){border-right:1px solid #26354e}
+.reputation-stats div:nth-child(3),.reputation-stats div:nth-child(4){border-bottom:0}
+.reputation-stats span{display:block;font-size:7px;letter-spacing:1.3px;color:#63738c}
+.reputation-stats strong{display:block;margin-top:7px;font:800 24px/.9 'Barlow Condensed';color:#e7ecf8;line-height:1.05}
+.reputation-ladder{margin-top:12px;padding:20px}
+.reputation-section-label{font-size:7px;letter-spacing:2px;color:#6b7991;margin-bottom:11px}
+.reputation-rank-row{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:13px 12px;border:1px solid transparent;border-radius:8px;background:#0a1428}
+.reputation-rank-row + .reputation-rank-row{margin-top:6px}
+.reputation-rank-row>div{display:flex;align-items:center;gap:13px;min-width:0}
+.reputation-rank-row>div span{width:55px;font:700 10px 'Barlow Condensed';color:#55647d}
+.reputation-rank-row>div strong{font:800 19px/.9 'Barlow Condensed';letter-spacing:.5px;white-space:nowrap}
+.reputation-rank-row>b{font-size:6px;letter-spacing:1.4px;color:#596981}
+.reputation-rank-row.unlocked{background:#0d1830}
+.reputation-rank-row.unlocked>div span{color:#8f9bc5}
+.reputation-rank-row.active{border-color:#5f67bb;background:linear-gradient(90deg,#151c3d,#0d1730);box-shadow:inset 0 0 28px rgba(99,102,241,.1)}
+.reputation-rank-row.active>div strong{color:#dfe3ff}
+.reputation-rank-row.active>b{color:#aab3ff}
+.reputation-rules{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin-top:12px;background:#293851}
+.reputation-rules>div{padding:18px;background:#0a1428}
+.reputation-rules span{display:block;font-size:7px;letter-spacing:1.7px;color:#697992}
+.reputation-rules p{margin:8px 0 0;color:#7f8da4;font-size:9px;line-height:1.55}
+.reputation-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:16px}
+.reputation-footer span{font-size:7px;letter-spacing:1.4px;color:#5e6d85}
+.reputation-footer .secondary{height:40px;padding:0 16px}
+
+@media(max-width:900px){
+  .reputation-hero{grid-template-columns:1fr}
+  .reputation-panel{max-height:calc(100vh - 28px)}
+}
+@media(max-width:800px){
+  .reputation-badge{right:12px;top:184px;width:min(210px,calc(100vw - 24px))}
+  .reputation-toast{top:174px;min-width:260px}
+}
+@media(max-width:620px){
+  .reputation-panel{padding:20px}
+  .reputation-head h2{font-size:46px}
+  .reputation-rank-card{min-height:190px;padding:20px}
+  .reputation-rank-card>strong{font-size:34px}
+  .reputation-rules{grid-template-columns:1fr}
+  .reputation-footer{align-items:flex-start;flex-direction:column}
+  .reputation-footer .secondary{width:100%}
+}
+@media(max-width:520px){
+  .reputation-backdrop{padding:10px}
+  .reputation-panel{max-height:calc(100vh - 20px)}
+  .reputation-badge{top:166px;width:calc(100vw - 24px)}
+  .reputation-toast{top:130px;min-width:0;width:calc(100vw - 24px)}
+  .reputation-rank-row>div{gap:8px}
+  .reputation-rank-row>div span{width:42px;font-size:8px}
+  .reputation-rank-row>div strong{font-size:16px}
+}

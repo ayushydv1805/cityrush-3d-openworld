@@ -1,10 +1,16 @@
 import { formatRupees } from "../game/economy/economyData";
 import { getGarageTier } from "../game/garage/garageData";
+import {
+  getCurrentRank,
+  getPayoutBonusPercent,
+  getRankProgress,
+} from "../game/reputation/reputationData";
 
 export default function GameHUD({
   city,
   economy,
   economyNotice,
+  reputation,
   garage,
   info,
   vehicleInfo,
@@ -17,6 +23,7 @@ export default function GameHUD({
   canStartMission = false,
   onStartMission,
   onAbortMission,
+  reputationNotice,
 }) {
   const active = driving ? vehicleInfo : info;
   const kmh = Math.round((active?.speed ?? 0) * 3.6);
@@ -28,6 +35,10 @@ export default function GameHUD({
     selectedMission?.checkpoints?.[mission?.checkpoint ?? 0]?.label ?? "FINISH";
   const timeLeft = Math.max(0, Math.ceil(mission?.timeLeft ?? 0));
   const garageTier = getGarageTier(garage);
+  const repScore = reputation?.score ?? 0;
+  const repRank = getCurrentRank(repScore);
+  const repProgress = getRankProgress(repScore);
+  const payoutBonus = getPayoutBonusPercent(repScore);
 
   return (
     <div className="game-ui">
@@ -41,8 +52,8 @@ export default function GameHUD({
         </div>
 
         <div className="game-phase">
-          PHASE 8
-          <span>GARAGE + UPGRADES</span>
+          PHASE 9
+          <span>REPUTATION + RANKS</span>
         </div>
 
         <button className="game-exit" onClick={onExit}>
@@ -75,12 +86,24 @@ export default function GameHUD({
         <small>{economy?.missionsCompleted ?? 0} PAID RUNS • ₹{formatRupees(economy?.totalEarned ?? 0)} EARNED</small>
       </div>
 
+      <div className="reputation-badge">
+        <div className="reputation-badge-top">
+          <span className="city-kicker">CITY REPUTATION</span>
+          <b>+{payoutBonus}% CASH</b>
+        </div>
+        <strong>{repRank.name}</strong>
+        <div className="reputation-mini-progress">
+          <span style={{ width: `${repProgress.progress}%` }} />
+        </div>
+        <small>{repScore} REP • {reputation?.successfulStreak ?? 0} RUN STREAK</small>
+      </div>
+
       <section className="mission-panel" aria-label="Mission board">
         {mission?.status === "idle" && (
           <>
             <div className="mission-panel-head">
               <div>
-                <span>PHASE 8 • MISSION BOARD</span>
+                <span>PHASE 9 • MISSION BOARD</span>
                 <strong>CHOOSE A RUN</strong>
               </div>
               <b>{missions.length.toString().padStart(2, "0")}</b>
@@ -98,7 +121,10 @@ export default function GameHUD({
                   <span className="mission-card-copy">
                     <strong>{item.name}</strong>
                     <small>{item.description}</small>
-                    <em>{item.checkpoints.length} CHECKPOINTS • {item.duration}s • ₹{formatRupees(item.reward)}</em>
+                    <em>
+                      {item.checkpoints.length} CHECKPOINTS • {item.duration}s • ₹{formatRupees(item.reward)}
+                      {payoutBonus > 0 ? ` • +${payoutBonus}% REP BONUS` : ""}
+                    </em>
                   </span>
                   <b className="mission-card-cta">START</b>
                 </button>
@@ -135,6 +161,11 @@ export default function GameHUD({
                 <span><small>TIME</small><b className={timeLeft <= 10 ? "warning" : ""}>{timeLeft}s</b></span>
                 <span><small>REWARD</small><b>₹{formatRupees(mission.reward)}</b></span>
               </div>
+              {mission.payoutMultiplier > 1 && (
+                <div className="mission-rep-bonus">
+                  +{Math.round((mission.payoutMultiplier - 1) * 100)}% reputation payout bonus included
+                </div>
+              )}
             </div>
           </>
         )}
@@ -146,6 +177,9 @@ export default function GameHUD({
             <p>{mission.message}</p>
             {mission.status === "success" && mission.payoutCredited > 0 && (
               <div className="mission-credit">+₹{formatRupees(mission.payoutCredited)} CREDITED</div>
+            )}
+            {mission.status === "success" && mission.reputationCredited > 0 && (
+              <div className="mission-rep-credit">+{mission.reputationCredited} REP EARNED</div>
             )}
             <div className="mission-result-actions">
               {mission.status === "failed" && (
@@ -218,7 +252,7 @@ export default function GameHUD({
       {!missionActive && missionFinished === false && locked && mission?.status === "idle" && (
         <div className="mission-hint">
           <b>MISSION BOARD</b>
-          <span>Choose a route from the panel at top-right.</span>
+          <span>Higher reputation = higher future mission payouts.</span>
         </div>
       )}
 
@@ -230,14 +264,22 @@ export default function GameHUD({
         </div>
       )}
 
+      {reputationNotice && (
+        <div className="reputation-toast" role="status">
+          <span>REPUTATION RANK UP</span>
+          <strong>{reputationNotice.title}</strong>
+          <small>+{reputationNotice.gained} REP • {reputationNotice.message}</small>
+        </div>
+      )}
+
       {!locked && (
         <div className="control-overlay">
           <div className="control-card">
             <span className="overlay-kicker">CITY RUSH • {city.name.toUpperCase()}</span>
             <h2>TAKE CONTROL</h2>
             <p>
-              Phase 8 adds the garage loop: clear driving routes, collect cash, then return to the garage
-              to tune the Civic Cruiser. Drive through glowing checkpoints before time runs out.
+              Phase 9 adds reputation: complete missions, protect your streak, climb city ranks,
+              and earn larger payout bonuses as your name grows.
             </p>
             <button className="primary overlay-button" onClick={onTakeControl}>
               CLICK TO PLAY <b>→</b>

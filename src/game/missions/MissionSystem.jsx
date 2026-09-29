@@ -21,9 +21,7 @@ function CheckpointBeacon({ point, active }) {
   return (
     <group position={point.position}>
       <mesh ref={ringRef} rotation-x={Math.PI / 2} position-y={0.08}>
-        <torusGeometry
-          args={[active ? 3.2 : 2.25, active ? 0.16 : 0.1, 10, 40]}
-        />
+        <torusGeometry args={[active ? 3.2 : 2.25, active ? 0.16 : 0.1, 10, 40]} />
         <meshStandardMaterial
           color={active ? "#a5b4fc" : "#64748b"}
           emissive={active ? "#6366f1" : "#1e293b"}
@@ -36,9 +34,7 @@ function CheckpointBeacon({ point, active }) {
       </mesh>
 
       <mesh ref={beamRef} position-y={1.55}>
-        <cylinderGeometry
-          args={[active ? 0.055 : 0.035, active ? 0.11 : 0.06, 3, 12]}
-        />
+        <cylinderGeometry args={[active ? 0.055 : 0.035, active ? 0.11 : 0.06, 3, 12]} />
         <meshStandardMaterial
           color={active ? "#c7d2fe" : "#94a3b8"}
           emissive={active ? "#818cf8" : "#334155"}
@@ -49,9 +45,7 @@ function CheckpointBeacon({ point, active }) {
       </mesh>
 
       <mesh position-y={3.15} rotation-x={Math.PI}>
-        <coneGeometry
-          args={[active ? 0.34 : 0.22, active ? 0.62 : 0.4, 4]}
-        />
+        <coneGeometry args={[active ? 0.34 : 0.22, active ? 0.62 : 0.4, 4]} />
         <meshStandardMaterial
           color={active ? "#e0e7ff" : "#64748b"}
           emissive={active ? "#6366f1" : "#334155"}
@@ -67,6 +61,7 @@ function CheckpointBeacon({ point, active }) {
 export default function MissionSystem({
   missionId,
   runId = 0,
+  missionReward,
   active,
   vehicleRef,
   driving,
@@ -82,6 +77,9 @@ export default function MissionSystem({
   });
 
   const mission = getMission(missionId);
+  const reward = Number.isFinite(Number(missionReward))
+    ? Math.max(0, Math.floor(Number(missionReward)))
+    : mission?.reward ?? 0;
 
   useEffect(() => {
     if (!active || !mission || !runId) {
@@ -109,22 +107,16 @@ export default function MissionSystem({
       checkpoint: 0,
       total: mission.checkpoints.length,
       timeLeft: mission.duration,
-      reward: mission.reward,
+      reward,
       message: "Drive to the first checkpoint.",
     });
-  }, [active, mission, onUpdate, runId]);
+  }, [active, mission, onUpdate, runId, reward]);
 
   useFrame(() => {
     if (!active || !mission) return;
 
     const runtime = runtimeRef.current;
-    if (
-      runtime.finished ||
-      !runtime.startedAt ||
-      runtime.runId !== runId
-    ) {
-      return;
-    }
+    if (runtime.finished || !runtime.startedAt || runtime.runId !== runId) return;
 
     const now = performance.now();
     const elapsed = (now - runtime.startedAt) / 1000;
@@ -138,9 +130,10 @@ export default function MissionSystem({
         checkpoint: runtime.checkpoint,
         total: mission.checkpoints.length,
         timeLeft: 0,
-        reward: mission.reward,
+        reward,
         title: mission.name,
         payoutCredited: 0,
+        reputationCredited: 0,
         message: "Time expired. Reset and try the route again.",
       });
       return;
@@ -165,9 +158,10 @@ export default function MissionSystem({
             checkpoint: mission.checkpoints.length,
             total: mission.checkpoints.length,
             timeLeft,
-            reward: mission.reward,
+            reward,
             title: mission.name,
-            payoutCredited: mission.reward,
+            payoutCredited: reward,
+            reputationCredited: 0,
             message: "Route complete. Mission cleared.",
           });
           return;
@@ -179,7 +173,7 @@ export default function MissionSystem({
           checkpoint: runtime.checkpoint,
           total: mission.checkpoints.length,
           timeLeft,
-          reward: mission.reward,
+          reward,
           message: `Checkpoint cleared. Head to ${mission.checkpoints[runtime.checkpoint].label}.`,
         });
       }
@@ -193,7 +187,7 @@ export default function MissionSystem({
         checkpoint: runtime.checkpoint,
         total: mission.checkpoints.length,
         timeLeft,
-        reward: mission.reward,
+        reward,
         message: driving
           ? `Next: ${target?.label ?? "Finish"}`
           : "Enter the Civic Cruiser to continue the mission.",

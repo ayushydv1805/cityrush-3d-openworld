@@ -11,6 +11,7 @@ export const MISSION_LIST = [
     description: "Take the Civic Cruiser through Chandigarh's central boulevard loop.",
     duration: 90,
     reward: 500,
+    reputation: 30,
     checkpoints: [
       checkpoint(-24, 0, "WEST ROUNDABOUT"),
       checkpoint(0, 0, "CENTRAL ROUNDABOUT"),
@@ -24,6 +25,7 @@ export const MISSION_LIST = [
     description: "Carry the package across the sector grid before the clock runs out.",
     duration: 85,
     reward: 800,
+    reputation: 45,
     checkpoints: [
       checkpoint(-24, -24, "SECTOR 27"),
       checkpoint(-48, -24, "WEST GATE"),
@@ -37,6 +39,7 @@ export const MISSION_LIST = [
     description: "Chain the major junctions in a fast precision driving route.",
     duration: 110,
     reward: 1200,
+    reputation: 65,
     checkpoints: [
       checkpoint(-24, 0, "WEST ROUNDABOUT"),
       checkpoint(0, 0, "CENTRAL ROUNDABOUT"),

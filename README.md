@@ -2,9 +2,9 @@
 
 **Your City. Your Ride. Your Run.**
 
-## Phase 8 — Garage + Vehicle Upgrades
+## Phase 9 — Reputation + Ranks
 
-Phase 8 closes the first economy loop: finish driving missions, earn in-game rupees, then spend that cash on permanent Civic Cruiser upgrades. Wallet and garage progress persist in browser local storage.
+Phase 9 gives the player a persistent reputation profile. Successful missions award reputation, fast completions can earn a speed bonus, consecutive successful missions build a streak bonus, and higher city ranks unlock larger cash payout bonuses for future missions.
 
 ### Included
 - Living Chandigarh sector-style city
@@ -23,11 +23,30 @@ Phase 8 closes the first economy loop: finish driving missions, earn in-game rup
 - Three upgrade levels per component
 - Upgrade purchases immediately change vehicle handling
 - Garage tier visuals on the 3D vehicle
-- Garage and controls panels with responsive UI
-- Backend /economy and /garage metadata routes
-- Phase 8 garage server status
+- Phase 9 reputation profile and rank progression
+- Persistent reputation score, successful streak and best streak
+- Speed and streak reputation bonuses
+- Higher reputation ranks add future mission payout bonuses
+- Reputation dashboard and in-game rank badge
+- Backend /economy, /garage and /reputation metadata routes
+- Phase 9 reputation server status
 
-### Phase 8 Upgrade Bay
+### Reputation Ranks
+- 0 REP — Street Rookie — +0% future mission payout
+- 100 REP — Licensed Driver — +5% future mission payout
+- 250 REP — Trusted Courier — +10% future mission payout
+- 500 REP — Sector Ace — +15% future mission payout
+- 900 REP — City Legend — +20% future mission payout
+
+### Reputation Rules
+- Successful missions award their configured base reputation.
+- A fast completion with at least 35% of the mission time remaining adds +10 REP.
+- A successful streak of 2 or more adds +5 REP.
+- A failed mission resets the successful streak to zero.
+- Rank bonuses apply to future mission cash payouts and are calculated when a mission starts.
+- Wallet, garage progress and reputation persist in browser local storage.
+
+### Garage
 - Engine: higher top speed + acceleration
 - Brakes: stronger braking response
 - Steering: quicker steering input
@@ -35,9 +54,6 @@ Phase 8 closes the first economy loop: finish driving missions, earn in-game rup
 - Three levels per component, with increasing purchase cost
 - Purchases are blocked when the wallet cannot cover the next level
 - Upgrades persist in browser local storage
-
-### Economy + Garage Rules
-Cash is earned only when a mission reaches the success state. Failed or aborted missions give no payout. Garage purchases spend cash immediately and cannot reduce the wallet below zero. Upgrades persist for the same browser save.
 
 ### Controls
 - W: accelerate / move forward
@@ -49,6 +65,7 @@ Cash is earned only when a mission reaches the success state. Failed or aborted 
 - Mouse: camera
 - Mission Board: click START on a mission card
 - Garage: open from the main menu
+- Reputation: open from the main menu
 
 ### Stack
 React + Vite, Three.js, React Three Fiber, React Three Drei, Node.js, Express and Socket.IO.

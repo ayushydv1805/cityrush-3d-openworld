@@ -8,14 +8,22 @@ import { CITY } from "./game/city/chandigarh";
 import { MISSION_LIST, getMission } from "./game/missions/missionData";
 import { addMissionReward, formatRupees, spendCash } from "./game/economy/economyData";
 import { buyUpgrade, getEffectiveVehicleStats, getNextUpgrade } from "./game/garage/garageData";
+import {
+  addMissionReputation,
+  getCurrentRank,
+  getPayoutMultiplier,
+  resetMissionStreak,
+} from "./game/reputation/reputationData";
 import useEconomy from "./game/economy/useEconomy";
 import useGarage from "./game/garage/useGarage";
+import useReputation from "./game/reputation/useReputation";
 import PlayerController from "./game/player/PlayerController";
 import VehicleController from "./game/vehicles/VehicleController";
 import ThirdPersonCamera from "./game/camera/ThirdPersonCamera";
 import GameHUD from "./ui/GameHUD";
 import MainMenu from "./ui/MainMenu";
 import GaragePanel from "./ui/GaragePanel";
+import ReputationPanel from "./ui/ReputationPanel";
 import MissionSystem from "./game/missions/MissionSystem";
 
 const idleMission = () => ({
@@ -26,7 +34,10 @@ const idleMission = () => ({
   total: 0,
   timeLeft: 0,
   reward: 0,
+  baseReward: 0,
+  payoutMultiplier: 1,
   payoutCredited: 0,
+  reputationCredited: 0,
   title: "",
   message: "Choose a mission from the Mission Board.",
 });
@@ -40,6 +51,7 @@ function Scene({
   driving,
   vehicleStats,
   garageTier,
+  missionReward,
   onPlayerUpdate,
   onVehicleUpdate,
   onEnterVehicle,
@@ -76,6 +88,7 @@ function Scene({
       <MissionSystem
         missionId={mission.id}
         runId={mission.runId}
+        missionReward={missionReward}
         active={mission.status === "active"}
         vehicleRef={vehicleRef}
         driving={driving}
@@ -126,9 +139,12 @@ export default function App() {
   const [driving, setDriving] = useState(false);
   const [controlsOpen, setControlsOpen] = useState(false);
   const [garageOpen, setGarageOpen] = useState(false);
+  const [reputationOpen, setReputationOpen] = useState(false);
   const [garageNotice, setGarageNotice] = useState(null);
+  const [reputationNotice, setReputationNotice] = useState(null);
   const [economy, setEconomy] = useEconomy();
   const [garage, setGarage] = useGarage();
+  const [reputation, setReputation] = useReputation();
   const [economyNotice, setEconomyNotice] = useState(null);
 
   const [info, setInfo] = useState({
@@ -172,6 +188,12 @@ export default function App() {
   }, [garageNotice]);
 
   useEffect(() => {
+    if (!reputationNotice) return undefined;
+    const id = window.setTimeout(() => setReputationNotice(null), 4600);
+    return () => window.clearTimeout(id);
+  }, [reputationNotice]);
+
+  useEffect(() => {
     const onPointerLock = () => setLocked(document.pointerLockElement === document.body);
 
     const onKeyDown = (event) => {
@@ -194,7 +216,9 @@ export default function App() {
   const enterCity = useCallback(() => {
     setControlsOpen(false);
     setGarageOpen(false);
+    setReputationOpen(false);
     setGarageNotice(null);
+    setReputationNotice(null);
     setStarted(true);
     setDriving(false);
     setMission(idleMission());
@@ -234,6 +258,9 @@ export default function App() {
     const runId = missionRunRef.current + 1;
     missionRunRef.current = runId;
 
+    const payoutMultiplier = getPayoutMultiplier(reputation.score);
+    const missionReward = Math.round(selected.reward * payoutMultiplier);
+
     setControlsOpen(false);
     setMission({
       id: selected.id,
@@ -242,8 +269,11 @@ export default function App() {
       checkpoint: 0,
       total: selected.checkpoints.length,
       timeLeft: selected.duration,
-      reward: selected.reward,
+      reward: missionReward,
+      baseReward: selected.reward,
+      payoutMultiplier,
       payoutCredited: 0,
+      reputationCredited: 0,
       title: selected.name,
       message: "Drive to the first checkpoint.",
     });
@@ -253,7 +283,7 @@ export default function App() {
       pitchRef.current = -0.14;
       setDriving(true);
     }
-  }, [driving, locked, vehicleInfo.nearVehicle]);
+  }, [driving, locked, reputation.score, vehicleInfo.nearVehicle]);
 
   const abortMission = useCallback(() => setMission(idleMission()), []);
 
@@ -262,28 +292,61 @@ export default function App() {
   }, []);
 
   const onMissionFinish = useCallback((result) => {
-    const shouldReward =
-      result.status === "success" &&
-      mission.status === "active" &&
+    const shouldCredit =
       result.runId === mission.runId &&
-      !rewardedRunsRef.current.has(result.runId);
+      mission.status === "active" &&
+      (result.status === "success" || result.status === "failed");
 
-    if (shouldReward) {
+    if (!shouldCredit) return;
+
+    const selected = getMission(mission.id);
+
+    if (result.status === "success") {
+      if (rewardedRunsRef.current.has(result.runId)) return;
+
       rewardedRunsRef.current.add(result.runId);
+
+      const reputationResult = addMissionReputation(reputation, {
+        id: mission.id,
+        reputation: selected?.reputation ?? 25,
+        timeLeft: result.timeLeft,
+        duration: selected?.duration ?? mission.total,
+      });
+
       setEconomy((previous) => addMissionReward(previous, result.reward));
+      setReputation(reputationResult.reputation);
+
       setEconomyNotice({
         amount: result.reward,
         title: result.title,
         message: "Mission payout credited to your wallet.",
       });
+
+      if (reputationResult.rankedUp) {
+        setReputationNotice({
+          score: reputationResult.reputation.score,
+          gained: reputationResult.gained.total,
+          title: reputationResult.currentRank.name,
+          message: `New reputation rank unlocked • +${Math.round(reputationResult.currentRank.payoutBonus * 100)}% future mission payout.`,
+        });
+      }
+
+      setMission((previous) => ({
+        ...previous,
+        ...result,
+        payoutCredited: result.reward,
+        reputationCredited: reputationResult.gained.total,
+      }));
+      return;
     }
 
+    setReputation((previous) => resetMissionStreak(previous));
     setMission((previous) => ({
       ...previous,
       ...result,
-      payoutCredited: shouldReward ? result.reward : previous.payoutCredited,
+      reputationCredited: 0,
     }));
-  }, [mission.runId, mission.status, setEconomy]);
+  }, [mission, reputation, setEconomy, setReputation]);
 
   const purchaseUpgrade = useCallback((key) => {
     if (purchaseLockRef.current) return;
@@ -332,6 +395,7 @@ export default function App() {
             driving={driving}
             vehicleStats={vehicleStats}
             garageTier={vehicleStats.garageTier}
+            missionReward={mission.reward}
             onPlayerUpdate={handlePlayerUpdate}
             onVehicleUpdate={handleVehicleUpdate}
             onEnterVehicle={enterVehicle}
@@ -346,6 +410,7 @@ export default function App() {
           city={CITY}
           economy={economy}
           economyNotice={economyNotice}
+          reputation={reputation}
           garage={garage}
           info={info}
           vehicleInfo={vehicleInfo}
@@ -369,12 +434,20 @@ export default function App() {
         onEnter={enterCity}
         economy={economy}
         garage={garage}
+        reputation={reputation}
         onGarage={() => {
           setControlsOpen(false);
+          setReputationOpen(false);
           setGarageOpen(true);
+        }}
+        onReputation={() => {
+          setGarageOpen(false);
+          setControlsOpen(false);
+          setReputationOpen(true);
         }}
         onControls={() => {
           setGarageOpen(false);
+          setReputationOpen(false);
           setControlsOpen(true);
         }}
       />
@@ -384,7 +457,7 @@ export default function App() {
           <section className="settings-panel" onClick={(event) => event.stopPropagation()}>
             <div className="settings-head">
               <div>
-                <span className="eyebrow">PHASE 8</span>
+                <span className="eyebrow">PHASE 9</span>
                 <h2>CONTROLS</h2>
               </div>
               <button className="modal-close" onClick={() => setControlsOpen(false)}>×</button>
@@ -398,13 +471,14 @@ export default function App() {
               <div><b>MOUSE</b><span>Rotate camera</span></div>
               <div><b>ESC</b><span>Release mouse control</span></div>
               <div><b>GARAGE</b><span>Buy permanent vehicle upgrades with mission cash</span></div>
-              <div><b>SAVE</b><span>Wallet + upgrades persist in browser storage</span></div>
+              <div><b>REPUTATION</b><span>Complete routes to climb city ranks and unlock payout bonuses</span></div>
+              <div><b>SAVE</b><span>Wallet + garage + reputation persist in browser storage</span></div>
             </div>
 
             <div className="settings-economy">
               <div><span>WALLET</span><strong>₹{formatRupees(economy.cash)}</strong></div>
-              <div><span>UPGRADE TIER</span><strong>{vehicleStats.garageTier}/3</strong></div>
-              <div><span>MISSIONS PAID</span><strong>{economy.missionsCompleted}</strong></div>
+              <div><span>REP RANK</span><strong>{getCurrentRank(reputation.score).name}</strong></div>
+              <div><span>REP SCORE</span><strong>{reputation.score}</strong></div>
             </div>
 
             <button className="primary settings-play" onClick={enterCity}>
@@ -418,9 +492,15 @@ export default function App() {
         <GaragePanel
           garage={garage}
           economy={economy}
-          garageNotice={garageNotice}
           onClose={() => setGarageOpen(false)}
           onPurchase={purchaseUpgrade}
+        />
+      )}
+
+      {reputationOpen && (
+        <ReputationPanel
+          reputation={reputation}
+          onClose={() => setReputationOpen(false)}
         />
       )}
     </>
